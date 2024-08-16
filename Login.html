@@ -13,8 +13,8 @@
             alt="Sign"
             width="300px"
             >
-                <h2 align="center">Sign in as Tutor</h2>
-                <form action="/login" method="post">
+                <h2 align="center">Sign in as a Member</h2>
+                <form id="loginForm" onsubmit="func(); return false;">
                     <label for="Username / Email Address"></label>
                     <div style="text-align: center;">
                         <input type="text" id="username" name="username" placeholder="Username / Email Address">
@@ -24,13 +24,16 @@
                         <input type="password" id="password" name="password" placeholder="Password">
                     </div>
                     <div style="text-align: center;">
-                        <button type="submit" >Login</button>
+                        <button type="submit" onclick="func()" >Login</button>
                     </div>
                 </form>
         </div>
         <div style="text-align: center;">
-            <a href="url">Forget password >></a>
-        </div>
+            <a href="fgtpswd.html">Forget password >></a>
+        </div>        
     </div>
+
+    <!-- Link to the external JavaScript file -->
+    <script src="script.js"></script>
 </body>
 </html>
