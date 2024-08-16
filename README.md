@@ -1,5 +1,5 @@
 # IT-project
-github for IT project, viva team MacdonaldLover!!!
+github for IT project, viva team McdonaldLovers!!!
 
 1st sprint
 Product Owner - Ren Jie Yeo
