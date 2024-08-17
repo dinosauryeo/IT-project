@@ -1,15 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>VIT Timetable</title>
+    <link rel="stylesheet" href="styles2.css">
 </head>
-
 <body>
-    <h1>Hello guys!</h1>
-    <p>Welcome to the home page.</p>
-</body>
+    <div class="header">
+        <div class="logo">
+            <img src="logoitself.png" alt="VIT Logo">
+        </div>
+        <div class="title">Timetable</div>
+        <!-- <div class="profile">
+            <span>Meichen</span>
+            <img src="profile-pic.png" alt="Profile Picture" class="profile-pic">
+            <span>chenmei@teacher.vit.edu.au</span>
+        </div> -->
+    </div>
 
+    <div class="navbar">
+        <ul>
+            <li onclick="showPage('home')" class="active">Home</li>
+            <li onclick="showPage('student')">Student</li>
+            <li onclick="showPage('help')">Help</li>
+            <li onclick="showPage('upload')">Upload</li>
+            <li onclick="showPage('logout')" class="logout">Logout</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div id="home" class="page active">
+            <h2>Welcome to VIT Timetable</h2>
+            <p>Select an option from the navigation bar to get started.</p>
+        </div>
+        <div id="student" class="page">
+            <h2>Student Page</h2>
+            <p>This is the Student page.</p>
+        </div>
+        <div id="help" class="page">
+            <h2>Help Page</h2>
+            <p>This is the Help page.</p>
+        </div>
+        <div id="upload" class="page">
+            <h2>Upload Page</h2>
+            <p>This is the Upload page.</p>
+        </div>
+        <div id="logout" class="page">
+            <h2>Logout</h2>
+            <p>You have been logged out.</p>
+        </div>
+    </div>
+
+    <script src="script2.js"></script>
+</body>
 </html>
