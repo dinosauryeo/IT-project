@@ -27,3 +27,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.getElementById('uploadForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    let fileInput = document.getElementById('fileInput');
+    let file = fileInput.files[0];
+
+    if (file) {
+        let formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('uploadStatus').innerText = 'File uploaded successfully!';
+            console.log('File Data:', data);  // Display the JSON data
+        })
+        .catch(error => {
+            document.getElementById('uploadStatus').innerText = 'File upload failed.';
+            console.error('Error:', error);
+        });
+    }
+});
