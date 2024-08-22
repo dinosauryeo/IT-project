@@ -1,4 +1,5 @@
 function func() {
+    //fetch the username and password from user
     var username = document.getElementById("username").value;
     var password = document.getElementById("password").value;
 
@@ -12,8 +13,9 @@ function func() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            window.location.href = "home.html"; // Redirect to home.html
-        } else {
+            window.location.href = '/home'; // Redirect to home.html
+        } 
+        else {
             alert(data.message);
         }
     })
