@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victorian Institute of Technology - Reset Password</title>
+    <link rel="stylesheet" href="static/css/styles1.css">
+</head>
+<body>
+    <div class="login-container">
+        <img src="static/images/logo.jpg" alt="VIT Logo" class="logo">
+        <h2 class="reset-title">Reset password</h2>
+        <form>
+            <input type="email" id="email" name="email" placeholder="Email" required>
+            <div class="verification-container">
+                <input type="text" id="vericode" name="vericode" placeholder="Verification code" required>
+                <button type="button" class="send-button" onclick="SendVeriCode()">Send</button>
+            </div>
+            <input type="password" id="resetpassword" name="resetpassword" placeholder="New password" required>
+            <input type="password" id="comfpassword" name="comfpassword" placeholder="Confirm password" required>
+            <button type="submit" class="continue-button" onclick="relogin()">Continue</button>
+        </form>
+    </div>
+    <script src="static/js/script1.js"></script>
+</body>
+</html>

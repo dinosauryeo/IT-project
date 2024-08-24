@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victorian Institute of Technology Login Page</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div>
+            <img src="static/images/logo.jpg"
+            alt="Sign"
+            width="300px"s
+            >
+                <h2 align="center">Sign in as a Member</h2>
+                <form id="loginForm" onsubmit="func(); return false;">
+                    <label for="Username / Email Address"></label>
+                    <div style="text-align: center;">
+                        <input type="text" id="username" name="username" placeholder="Username / Email Address">
+                    </div>
+                    <label for="password"></label>
+                    <div style="text-align: center;">
+                        <input type="password" id="password" name="password" placeholder="Password">
+                    </div>
+                    <div style="text-align: center;">
+                        <button type="submit">Login</button>
+                    </div>
+                </form>
+        </div>
+        <div style="text-align: center;">
+            <a href="/reset_password">Forget password >></a>
+        </div>        
+    </div>
+
+    <!-- Link to the external JavaScript file -->
+    <!-- <script src= "static/js/script.js" ></script> -->
+    <script>
+        function func() {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username, password: password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data); 
+                if (data.status === 'success') {
+                    window.location.href = '/home'; 
+                } 
+                else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        }
+    </script>
+</body>
+</html>
