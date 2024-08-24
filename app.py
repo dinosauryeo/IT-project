@@ -26,49 +26,52 @@ if not os.path.exists(UPLOAD_FOLDER):
 def login_page():
     return render_template('login.html')
 
-# Route to serve the file upload HTML file
-@app.route('/home')
-def home_page():
-    return render_template('home.html')
+
 
 # Route to serve the reset password HTML file
 @app.route('/reset_password')
 def reset_page():
     return render_template('fgtpswd.html')
 
-@app.route('/test-static')
-def test_static():
-    return app.send_static_file('styles.css')  
-
 # Route to handle login requests
 @app.route('/login', methods=['POST'])
 def login():
+    
     #get username and password
     data = request.get_json()
-    username = data.get('username')
+    username_or_email = data.get('username')
     password = data.get('password')
     
     df = pd.DataFrame(pd.read_csv("loginDatabase.csv"))
     password_row = df[df['password'].astype(str) == password]
     
+    print(type(password))
+    print(password_row.empty)
+    
     # Basic validation
-    if not username or not password:
+    if not username_or_email or not password:
         return jsonify({"status": "fail", "message": "Username and password are required"})
     
     # Authenticate user
     if not password_row.empty:
-        user_row = password_row[password_row['username'] == username]
-        email_row = password_row[password_row['email'] == username]
-        if not user_row.empty or not email_row.empty:
+        user_row = password_row[
+            (password_row['username'] == username_or_email) |
+            (password_row['email'] == username_or_email)
+        ]
+
+        if not user_row.empty:
             # In a real application, you'd set a session or token here
             return jsonify({"status": "success", "message": "Login successful"})
-        else:
-            return jsonify({"status": "fail", "message": "Invalid username or password"})
-            return "error"
     else:
         return jsonify({"status": "fail", "message": "Invalid username or password"})
         return "error"
-
+    
+# Route to serve the file upload HTML file
+@app.route('/home')
+def home_page():
+    print("Home page accessed")
+    return render_template('home.html')
+    
 # Route to handle file upload
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -100,4 +103,5 @@ def upload_file():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
