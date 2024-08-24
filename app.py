@@ -26,36 +26,52 @@ if not os.path.exists(UPLOAD_FOLDER):
 def login_page():
     return render_template('login.html')
 
-# Route to serve the file upload HTML file
-@app.route('/home')
-def home_page():
-    return render_template('home.html')
 
-@app.route('/test-static')
-def test_static():
-    return app.send_static_file('styles.css')  
+
+# Route to serve the reset password HTML file
+@app.route('/reset_password')
+def reset_page():
+    return render_template('fgtpswd.html')
 
 # Route to handle login requests
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.json
-    username = data.get('username')
+    
+    #get username and password
+    data = request.get_json()
+    username_or_email = data.get('username')
     password = data.get('password')
+    
+    df = pd.DataFrame(pd.read_csv("loginDatabase.csv"))
+    password_row = df[df['password'].astype(str) == password]
+    
+    print(type(password))
+    print(password_row.empty)
+    
+    # Basic validation
+    if not username_or_email or not password:
+        return jsonify({"status": "fail", "message": "Username and password are required"})
+    
+    # Authenticate user
+    if not password_row.empty:
+        user_row = password_row[
+            (password_row['username'] == username_or_email) |
+            (password_row['email'] == username_or_email)
+        ]
 
-    # Connect to your database
-    conn = sqlite3.connect('login_database.db')
-    cursor = conn.cursor()
-
-    # Query to check credentials
-    cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-    user = cursor.fetchone()
-    conn.close()
-
-    if user:
-        return jsonify({'status': 'success', 'message': 'Login successful'}), 200
+        if not user_row.empty:
+            # In a real application, you'd set a session or token here
+            return jsonify({"status": "success", "message": "Login successful"})
     else:
-        return jsonify({'status': 'error', 'message': 'Invalid credentials'}), 401
-
+        return jsonify({"status": "fail", "message": "Invalid username or password"})
+        return "error"
+    
+# Route to serve the file upload HTML file
+@app.route('/home')
+def home_page():
+    print("Home page accessed")
+    return render_template('home.html')
+    
 # Route to handle file upload
 @app.route('/upload', methods=['POST'])
 def upload_file():
