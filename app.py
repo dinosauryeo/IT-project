@@ -1,7 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 import os
 import pandas as pd
+import random
 import sqlite3  # Example using SQLite for database
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import yagmail
+import mongoDB
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,7 +38,7 @@ def home_page():
     return render_template('home.html')
 
 # Route to serve the reset password HTML file
-@app.route('/reset_password')
+@app.route('/reset_page')
 def reset_page():
     return render_template('fgtpswd.html')
 
@@ -48,26 +54,18 @@ def login():
     username = data.get('username')
     password = data.get('password')
     
-    df = pd.DataFrame(pd.read_csv("loginDatabase.csv"))
-    password_row = df[df['password'].astype(str) == password]
-    
     # Basic validation
     if not username or not password:
         return jsonify({"status": "fail", "message": "Username and password are required"})
     
-    # Authenticate user
-    if not password_row.empty:
-        user_row = password_row[password_row['username'] == username]
-        email_row = password_row[password_row['email'] == username]
-        if not user_row.empty or not email_row.empty:
-            # In a real application, you'd set a session or token here
-            return jsonify({"status": "success", "message": "Login successful"})
-        else:
-            return jsonify({"status": "fail", "message": "Invalid username or password"})
-            return "error"
+    success = mongoDB.verify(password,username)
+    
+    if success:
+        # In a real application, you'd set a session or token here
+        return jsonify({"status": "success", "message": "Login successful"})
     else:
         return jsonify({"status": "fail", "message": "Invalid username or password"})
-        return "error"
+    
 
 # Route to handle file upload
 @app.route('/upload', methods=['POST'])
@@ -98,6 +96,81 @@ def upload_file():
 
         return jsonify({'message': 'File uploaded successfully'})
 
+#route to handle sending verification email
+@app.route('/send_email', methods=['POST'])
+def send_email():
+    #fetch user data
+    data = request.get_json()
+    user_email = data.get('email')
+    
+    #check does the email exists
+    email_exists = mongoDB.check_user_value("email",user_email)
+    if not email_exists:
+        return jsonify({"status": "fail","message": "email doesnt exists"})
+    
+    #setup information required to send the email
+    server = 'smtp.gmail.com'
+    port = 587
+    username = "dinosauryeo@gmail.com"
+    password = "jucvnvbkwtgcehjo"
+    
+    #genereate the verification code
+    verification_code = random.randint(100000, 999999)
+    
+    #construct the email body
+    msg = MIMEMultipart()
+    msg['From'] = username
+    msg['To'] = user_email
+    msg['Subject'] = "Verification code to reset password"
+    body = "Your verification code is " + str(verification_code) 
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP(server, port) as server:
+            #create connection
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls() 
+            
+            #login and send the mail
+            server.login(username, password)
+            server.sendmail(username, user_email, msg.as_string())
+            
+            #store the verification code in the system
+            mongoDB.input_user_data(user_email,"verification_code",verification_code)
+            return jsonify({"status": "success","message": "Verification code sent successfully"})
+    
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return jsonify({"status": "fail","message": "Failed to send email"})
+    
+#route to handle reseting and relogin 
+@app.route('/reset_password', methods=['POST'])
+def relogin():
+    data = request.get_json()
+    email = data.get('email')
+    vericode = data.get('vericode')
+    resetpassword = data.get('resetpassword')
+    confirmpassword = data.get('confirmpassword')
+    
+    #check all field exists
+    if not email or not vericode or not resetpassword or not confirmpassword:
+        return jsonify({"status": "fail","message": "please enter all field"})
+    print("all field exists")
+    
+    #check does the two password match up
+    if resetpassword == confirmpassword:
+        print("two password match")
+        
+        #check does the vericode match up with any email in the database
+        if mongoDB.veri_vericode(email,vericode,resetpassword) is True:
+            print("reset successful")
+            return jsonify({"status": 'success',"message": "success"})
+        else:
+            print("vericode doesn't match")
+            return jsonify({"status": "fail","message": "vericode doesn't match"})
+    else:
+        return jsonify({"status": "fail","message": "password doesn't match"})
+    
 if __name__ == '__main__':
     app.run(debug=True)
 
