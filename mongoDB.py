@@ -2,6 +2,7 @@
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import pymongo
+from datetime import datetime, timedelta
 
 def login():
     uri = "mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -79,15 +80,22 @@ def veri_vericode(email,vericode,password):
     
     result = user_data.find_one(query)
     
+    #if no such vericode exists
     if result is None:
-        return False
+        return 2
+    
     else:
-        # Query to find the document to update
-        query = {"email": email}
+        #check had the vericode expired yet
+        time_limit = timedelta(minutes = 5)
+        time_difference = abs(datetime.now() - result["vericode_date_sent"])
+        
+        if time_difference <= time_limit:
+            # reset vericode value
+            new_values = {"$set": {"password": password, "verification_code":None}}
 
-        # New values to update
-        new_values = {"$set": {"password": password, "verification_code":None}}
-
-        # Update the document
-        result = user_data.update_one(query, new_values)
-        return True
+            # Update the document
+            result = user_data.update_one(query, new_values)
+            return 1
+        else:
+            return 3
+        

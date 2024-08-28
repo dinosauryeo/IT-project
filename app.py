@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import yagmail
 import mongoDB
+from datetime import datetime
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -97,8 +98,8 @@ def upload_file():
         return jsonify({'message': 'File uploaded successfully'})
 
 #route to handle sending verification email
-@app.route('/send_email', methods=['POST'])
-def send_email():
+@app.route('/send_vericode', methods=['POST'])
+def send_vericode():
     #fetch user data
     data = request.get_json()
     user_email = data.get('email')
@@ -122,7 +123,7 @@ def send_email():
     msg['From'] = username
     msg['To'] = user_email
     msg['Subject'] = "Verification code to reset password"
-    body = "Your verification code is " + str(verification_code) 
+    body = "Your verification code is " + str(verification_code) +" ,please use this within one minute"
     msg.attach(MIMEText(body, 'plain'))
 
     try:
@@ -137,7 +138,8 @@ def send_email():
             
             #store the verification code in the system
             mongoDB.input_user_data(user_email,"verification_code",verification_code)
-            return jsonify({"status": "success","message": "Verification code sent successfully"})
+            mongoDB.input_user_data(user_email,"vericode_date_sent",datetime.now())
+            return jsonify({"status": "success","message": "Verification code sent successfully, please use it within one minute"})
     
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -161,13 +163,17 @@ def relogin():
     if resetpassword == confirmpassword:
         print("two password match")
         
+        response = mongoDB.veri_vericode(email,vericode,resetpassword)
         #check does the vericode match up with any email in the database
-        if mongoDB.veri_vericode(email,vericode,resetpassword) is True:
+        if response == 1:
             print("reset successful")
             return jsonify({"status": 'success',"message": "success"})
-        else:
+        elif response == 2:
             print("vericode doesn't match")
             return jsonify({"status": "fail","message": "vericode doesn't match"})
+        elif response == 3:
+            print("vericode expired")
+            return jsonify({"status": "fail","message": "vericode expired"})
     else:
         return jsonify({"status": "fail","message": "password doesn't match"})
     

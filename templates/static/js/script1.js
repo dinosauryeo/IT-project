@@ -1,7 +1,7 @@
 function SendVeriCode() {
     var email = document.getElementById("email").value;
     //send the email address to python
-    fetch('/send_email', {
+    fetch('/send_vericode', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
