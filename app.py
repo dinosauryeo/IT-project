@@ -33,6 +33,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 def login_page():
     return render_template('login.html')
 
+@app.route('/home')
+def home_page():
+    return render_template('home.html')
 
 
 # Route to serve the reset password HTML file
