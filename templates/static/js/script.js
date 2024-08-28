@@ -13,9 +13,11 @@ function func() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
+            console.log("login succesful");
             window.location.href = '/home'; // Redirect to home.html
         } 
         else {
+            console.log("incorrect pasword");
             alert(data.message);
         }
     })
