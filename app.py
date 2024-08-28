@@ -54,7 +54,7 @@ def login():
     if not username_or_email or not password:
         return jsonify({"status": "fail", "message": "Username and password are required"})
     
-    success = mongoDB.verify(password,username)
+    success = mongoDB.verify(password,username_or_email)
     
     if success:
         # In a real application, you'd set a session or token here
