@@ -33,30 +33,24 @@ if not os.path.exists(UPLOAD_FOLDER):
 def login_page():
     return render_template('login.html')
 
-# Route to serve the file upload HTML file
-@app.route('/home')
-def home_page():
-    return render_template('home.html')
+
 
 # Route to serve the reset password HTML file
 @app.route('/reset_page')
 def reset_page():
     return render_template('fgtpswd.html')
 
-@app.route('/test-static')
-def test_static():
-    return app.send_static_file('styles.css')  
-
 # Route to handle login requests
 @app.route('/login', methods=['POST'])
 def login():
+    
     #get username and password
     data = request.get_json()
-    username = data.get('username')
+    username_or_email = data.get('username')
     password = data.get('password')
     
     # Basic validation
-    if not username or not password:
+    if not username_or_email or not password:
         return jsonify({"status": "fail", "message": "Username and password are required"})
     
     success = mongoDB.verify(password,username)
@@ -179,4 +173,5 @@ def relogin():
     
 if __name__ == '__main__':
     app.run(debug=True)
+
 

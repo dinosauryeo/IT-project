@@ -24,7 +24,7 @@
                         <input type="password" id="password" name="password" placeholder="Password">
                     </div>
                     <div style="text-align: center;">
-                        <button type="submit" onclick="func()" >Login</button>
+                        <button type="submit">Login</button>
                     </div>
                 </form>
         </div>
@@ -34,6 +34,34 @@
     </div>
 
     <!-- Link to the external JavaScript file -->
-    <script src= "static/js/script.js" ></script>
+    <!-- <script src= "static/js/script.js" ></script> -->
+    <script>
+        function func() {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username, password: password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data); 
+                if (data.status === 'success') {
+                    window.location.href = '/home'; 
+                } 
+                else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        }
+    </script>
 </body>
 </html>
