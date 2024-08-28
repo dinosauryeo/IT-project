@@ -49,6 +49,7 @@ def login():
     username_or_email = data.get('username')
     password = data.get('password')
     
+
     # Basic validation
     if not username_or_email or not password:
         return jsonify({"status": "fail", "message": "Username and password are required"})
