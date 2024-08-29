@@ -33,7 +33,7 @@ def verify(password, username):
     user_data = access_user(client)
 
     query={
-        "$or":[{"username":username},{"email":username}],
+        "$or":[{"username":username},{"email":username.lower()}],
         "password":password
     }
     result = user_data.find_one(query)
@@ -49,7 +49,7 @@ def input_user_data(email,destination,data):
     user_data = access_user(client)
     
     # Query to find the document to update
-    query = {"email": email}
+    query = {"email": email.lower()}
 
     # New values to update
     new_values = {"$set": {destination: data}}
@@ -76,7 +76,7 @@ def check_user_value(target_field,value):
 def veri_vericode(email,vericode,password):
     client = login()
     user_data = access_user(client)
-    query = {"email":email,"verification_code":int(vericode)}
+    query = {"email":email.lower(),"verification_code":int(vericode)}
     
     result = user_data.find_one(query)
     
