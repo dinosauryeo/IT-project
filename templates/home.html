@@ -44,12 +44,13 @@
         </div>
         <div id="upload" class="page">
             <h2>Upload Page</h2>
-            <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" id="fileInput" accept=".csv, .xlsx" required>
+            <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+                <!-- 修改2: 添加了 `name` 属性 -->
+                <input type="file" id="fileInput" name="file" accept=".csv, .xlsx" required>
                 <button type="submit">Upload</button>
             </form>
             <div id="uploadStatus"></div>
-        </div>        
+        </div>       
         <div id="logout" class="page">
             <h2>Logout</h2>
             <p>You have been logged out.</p>

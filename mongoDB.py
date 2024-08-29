@@ -3,6 +3,10 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import pymongo
 from datetime import datetime, timedelta
+import pandas as pd
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
+import gridfs
 
 def login():
     uri = "mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -99,3 +103,26 @@ def veri_vericode(email,vericode,password):
         else:
             return 3
         
+
+def insert_student_data(file_path):
+    client = login()
+    collection = access_enrollment(client)
+
+    # 读取CSV文件
+    df = pd.read_csv(file_path)
+    
+    # 将每一行数据插入到 MongoDB
+    for index, row in df.iterrows():
+        student_data = row.to_dict()  # 将每一行转换为字典
+        collection.insert_one(student_data)  # 插入到 MongoDB 集合中
+
+
+def access_enrollment(client):
+    db = client['IT-project']
+    collection = db['Students-enrollment-details']
+    return collection
+
+def access_fs(client):
+    db = client['IT-project']
+    fs = gridfs.GridFS(db)
+    return fs
