@@ -11,6 +11,7 @@ import mongoDB
 from datetime import datetime
 from mongoDB import insert_student_data
 
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Initialize the app with custom static and template folder paths
