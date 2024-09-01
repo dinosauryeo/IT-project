@@ -9,6 +9,7 @@ from email.mime.multipart import MIMEMultipart
 import yagmail
 import mongoDB
 from datetime import datetime
+from mongoDB import insert_student_data
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -66,6 +67,13 @@ def login():
         return jsonify({"status": "fail", "message": "Invalid username or password"})
     
 
+
+
+
+
+
+
+
 # Route to handle file upload
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -84,16 +92,23 @@ def upload_file():
 
         # Process the file as needed (e.g., store data in database)
         if file.filename.endswith('.csv'):
-            df = pd.read_csv(filepath)
+            # Call the new function to insert data into MongoDB
+            insert_student_data(filepath)
         elif file.filename.endswith('.xlsx'):
             df = pd.read_excel(filepath)
+            # Optionally handle Excel files here
         else:
             return jsonify({'error': 'Invalid file format'}), 400
 
-        # Process the dataframe or store it as needed
-        # For example, you might save data to a database or perform some analysis
+        return jsonify({'message': 'File uploaded and data stored successfully'})
 
-        return jsonify({'message': 'File uploaded successfully'})
+
+
+
+
+
+
+
 
 #route to handle sending verification email
 @app.route('/send_vericode', methods=['POST'])
