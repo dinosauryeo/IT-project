@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>VIT Timetable</title>
+    <link rel="stylesheet" href="static/css/styles2.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <a href="javascript:void(0);" onclick="loadHomePage()">
+                <img src="static/images/logoitself.png" alt="VIT Logo">
+            </a>
+        </div>
+        <div class="title">Timetable</div>
+    </div>
+
+    <div class="navbar">
+        <ul>
+            <li id="home-link" onclick="loadHomePage()">Home</li>
+            <li onclick="loadStudentPage()">Student</li>
+            <li onclick="loadUploadPage()" class="active">Upload</li>
+            <li onclick="loadGeneratePage()">Generate</li>
+            <li id="logout-link" onclick="logout()" class="logout">Logout</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div id="upload" class="page active">
+            <h2>Upload Page</h2>
+            <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+                <!-- 修改2: 添加了 `name` 属性 -->
+                <input type="file" id="fileInput" name="file" accept=".csv, .xlsx" required>
+                <button type="submit">Upload</button>
+            </form>
+            <div id="uploadStatus"></div>
+        </div>       
+    </div>
+
+    <script src="static/js/script2.js"></script>
+</body>
+</html>

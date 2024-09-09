@@ -81,6 +81,7 @@ body {
     background-color: #f96c25;
 }
 
+
 .navbar li.active {
     background-color: #f96c25; 
 }
@@ -97,3 +98,261 @@ body {
 .page.active {
     display: block;
 }
+
+
+
+.container {
+    display: flex;
+    /* height: calc(100vh - 120px);   Adjust based on header and footer height */
+    gap: 20px;  /* Adds a gap between the bars */
+}
+
+.left-bar, .right-bar {
+    padding: 20px;
+    overflow-y: auto;  /* Enables scrolling */
+    border-radius: 15px;  /* Adds rounded corners */
+}
+
+.left-bar {
+    width: 35%;  /* Makes the left bar thinner */
+    background-color: #f0f0f0;
+    max-height: 100%;
+}
+
+.right-bar {
+    width: 65%;  /* Makes the right bar wider */
+    background-color: #f0f0f0;
+    max-height: 100%;
+}
+
+.subjects-text h3 {
+    text-align: center;
+    background: linear-gradient(to right, rgb(236, 73, 19), rgb(175, 22, 175));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 30px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+.subject-list, .calendar, .right-bar h3 {
+    margin-top: 20px;
+}
+
+#subject-dropdown {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#enrolled-students, #lecture-tutorial-list {
+    list-style: none;
+    padding: 0;
+}
+
+#enrolled-students li, #lecture-tutorial-list li {
+    padding: 10px;
+    background-color: #f0f0f0;
+    margin-top: 5px;
+    border-radius: 5px;
+}
+
+
+/* createsubjectpage */
+
+/* Container to hold the two bars stacked vertically */
+.container1 {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column; /* Stack bars vertically */
+    gap: 40px; /* Adds a gap between the bars */
+    overflow: hidden; /* Prevents any overflow outside the container */
+}
+
+.up-bar {
+    padding: 20px;
+    margin-left: 10px;
+    overflow-y: auto; /* Enables vertical scrolling */
+    border-radius: 15px; /* Adds rounded corners */
+    height: 30%;
+    width: 95%; /* Full width of the page */
+    background-color: #f0f0f0;
+}
+.down-bar {
+    padding: 0;
+    margin-left: 10px;
+    overflow-y: auto; /* Enables vertical scrolling */
+    border-radius: 15px; /* Adds rounded corners */
+    height: 30%;
+    width: 95%; /* Full width of the page */
+    background-color: #f0f0f0;
+}
+
+
+/* Optional: To ensure full-width if needed */
+.container1 > div {
+    box-sizing: border-box; /* Ensures padding is included in the width */
+}
+
+
+.subjects-text h2 {
+    background: linear-gradient(to right, rgb(236, 73, 19), rgb(175, 22, 175));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: auto;
+}
+
+.button-container {
+    text-align: right; /* Align buttons to the left */
+    white-space: nowrap; /* Prevent wrapping to a new line */
+    width: 95%; 
+}
+
+#add-Lecture, #add-Tutorial, #add-Lab {
+    display: inline-block; /* Display buttons in a row */
+    width: 100px; /* Adjust the width as needed */
+    margin-right: 10px; /* Add spacing between the buttons */
+    text-align: center; /* Center the text inside the button */
+    vertical-align: top; /* Align buttons to the top (optional) */
+}
+
+#create-subject {
+    display: block;
+    width: 150px; /* Adjust the width as needed */
+    margin-left: auto; /* Automatically adjusts left margin */
+    margin-right: 60px; /* Ensure right margin is set to 0 */
+    text-align: center; /* Center the text inside the button */
+}
+
+.form-group {
+    display: flex;
+    gap: 10px; /* Adjusts the space between elements */
+    margin-bottom: 10px; /* Space below each row */
+}
+
+.form-group input, .form-group select {
+    font-size: 15px;
+    flex: 1; /* Allows each element to take up equal space */
+    min-width: 0; /* Prevents elements from being too wide */
+    padding: 5px;
+    border-radius: 8px; /* Rounded corners */
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
+
+/* Add placeholder color */
+select::placeholder, input::placeholder {
+    color: #888;
+}
+
+/* Styling for select and input fields */
+select, input {
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    margin-right: 8px; /* Space between elements */
+}
+
+
+
+
+#additional-sections .section {
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.section label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.section button {
+    display: block;
+    margin: 10px 0;
+}
+
+.section select,
+.section input {
+    font-size: 15px;
+    width: calc(33.33% - 10px);  /* Set the width to about 1/3 of the container width with space for margin */
+    padding: 8px;
+    margin-right: 8px;  /* Adds some space between the elements */
+    box-sizing: border-box;
+    display: inline-block;
+}
+
+.section .section-title {
+    font-weight: bold;
+    font-size: 20px;
+    display: block;
+}
+
+.section .select-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;  /* Add space between rows */
+    margin-bottom: 10px;
+}
+
+.section .select-row select,
+.section .select-row input {
+    font-size: 15px;
+    flex: 1;  /* Ensures the elements are responsive */
+    min-width: 0;  
+}
+
+
+
+.section-category {
+    width: 95%; /* Adjust based on your preference */
+    display: flex;
+    flex-direction: column; /* Aligns items vertically */
+    align-items: center;    /* Centers items horizontally */
+}
+
+.section {
+    margin-left: 40px;
+    margin-top: 20px;
+    width: 100%; /* Ensure sections take the full width of the container */
+}
+
+
+
+.section-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end; /* Align buttons to the left */
+    gap: 5px; /* Adjust space between buttons */
+}
+
+.add-module-btn, .delete-section-btn, .delete-module-btn {
+    width: 100px;
+    border-radius: 5px;
+    color: #f0f0f0;
+}
+
+.add-module-btn {
+    background-color: #464646; /* Match the existing button color */
+}
+
+.add-module-btn:hover {
+    background-color: #555; /* Slightly lighter on hover */
+}
+
+.delete-section-btn, .delete-module-btn {
+    background-color: #dc3545; /* Red background for 'Delete Section' */
+}
+
+.delete-section-btn:hover, .delete-module-btn:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
+
+
+
+
+/* Style for module title */
+.module-title {
+    font-size: 15px bold;
+}
+
+

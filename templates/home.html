@@ -9,54 +9,64 @@
 <body>
     <div class="header">
         <div class="logo">
-            <img src="static/images/logoitself.png" alt="VIT Logo">
+            <a href="javascript:void(0);" onclick="loadHomePage()">
+                <img src="static/images/logoitself.png" alt="VIT Logo">
+            </a>
         </div>
         <div class="title">Timetable</div>
-        <!-- <div class="profile">
-            <span>Meichen</span>
-            <img src="profile-pic.png" alt="Profile Picture" class="profile-pic">
-            <span>chenmei@teacher.vit.edu.au</span>
-        </div> -->
     </div>
 
     <div class="navbar">
         <ul>
-            <li onclick="showPage('home')" class="active">Home</li>
-            <li onclick="showPage('student')">Student</li>
-            <li onclick="showPage('help')">Help</li>
-            <li onclick="showPage('upload')">Upload</li>
-            <li onclick="showPage('logout')" class="logout">Logout</li>
+            <li id="home-link" onclick="loadHomePage()" class="active">Home</li>
+            <li onclick="loadStudentPage()">Student</li>
+            <li onclick="loadUploadPage()">Upload</li>
+            <li onclick="loadGeneratePage()">Generate</li>
+            <li id="logout-link" onclick="logout()" class="logout">Logout</li>
         </ul>
     </div>
 
     <div class="content">
         <div id="home" class="page active">
-            <h2>Welcome to VIT Timetable</h2>
-            <p>Select an option from the navigation bar to get started.</p>
-        </div>
-        <div id="student" class="page">
-            <h2>Student Page</h2>
-            <p>This is the Student page.</p>
-        </div>
-        <div id="help" class="page">
-            <h2>Help Page</h2>
-            <p>This is the Help page.</p>
-        </div>
-        <div id="upload" class="page">
-            <h2>Upload Page</h2>
-            <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
-                <!-- 修改2: 添加了 `name` 属性 -->
-                <input type="file" id="fileInput" name="file" accept=".csv, .xlsx" required>
-                <button type="submit">Upload</button>
-            </form>
-            <div id="uploadStatus"></div>
-        </div>       
-        <div id="logout" class="page">
-            <h2>Logout</h2>
-            <p>You have been logged out.</p>
+            <div class="container">
+                <div class="left-bar">
+                    <div class="subjects-text">
+                        <h3>Subjects</h3>
+                    </div>
+                    <select id="year-semester">
+                        <option value="2024S1">2024 - Semester 1</option>
+                        <option value="2024S2">2024 - Semester 2</option>
+                    </select>
+                    <div class="subject-list">
+                        <h3>Subjects</h3>
+                        <select id="subject-dropdown">
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                        <button id="add-subject-btn" onclick="addSubject()">Add Subject</button>
+                    </div>
+                    <div class="calendar">
+                        <h3>Calendar</h3>
+                        <!-- Small calendar will be integrated here -->
+                    </div>
+                </div>
+        
+                <div class="right-bar">
+                    <h3>Subject Information</h3>
+                    <p>Code/Title: <span id="subject-code-title"></span></p>
+                    <p>Delivery Mode: <span id="delivery-mode"></span></p>
+                    <p>Lecture/Tutorial Times:</p>
+                    <ul id="lecture-tutorial-list">
+                        <!-- Lecture/Tutorial times will be listed here -->
+                    </ul>
+                    <h3>Enrolled Students</h3>
+                    <ul id="enrolled-students">
+                        <!-- Student info will be displayed here -->
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="static/js/script2.js"></script>
+    <script src="static/js/script4.js"></script>
 </body>
 </html>
