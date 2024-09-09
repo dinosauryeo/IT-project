@@ -39,11 +39,23 @@ def login_page():
 def home_page():
     return render_template('home.html')
 
+@app.route('/student')
+def student_page():
+    return render_template('student.html')
+
+@app.route('/generate')
+def generate_page():
+    return render_template('generate.html')
+
 
 # Route to serve the reset password HTML file
 @app.route('/reset_page')
 def reset_page():
     return render_template('fgtpswd.html')
+
+@app.route('/logout')
+def logout_page():
+    return render_template('login.html')
 
 # Route to handle login requests
 @app.route('/login', methods=['POST'])
@@ -69,15 +81,66 @@ def login():
     
 
 
+@app.route('/createsubject', methods=['GET', 'POST'])
+def createsubject_page():
+    if request.method == 'GET':
+        return render_template('create_subject.html')
 
+    data = request.json
+    print(f"Received data: {data}")  # Log received data
 
+    year = data.get('year')
+    semester = data.get('semester')
+    campus = data.get('campus')
+    coordinator = data.get('coordinator')
+    subject_name = data.get('subjectName')
+    subject_code = data.get('subjectCode')
+    sections = data.get('sections')
+    
+    subject_data = {
+        'year': year,
+        'semester': semester,
+        'campus': campus,
+        'coordinator': coordinator,
+        'subjectName': subject_name,
+        'subjectCode': subject_code,
+        'sections': sections
+    }
 
+    try:
+        inserted_id = mongoDB.insert_one(subject_data)
+        print(f"Inserted document ID: {inserted_id}")  # Log inserted document ID
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        print(f"Error inserting subject: {e}")  # Log error message
+        return jsonify({'status': 'error', 'message': 'Failed to create subject'}), 500
 
+    
+@app.route('/getsubjects', methods=['GET'])
+def get_subjects():
+    try:
+        client = login()  # Connect to MongoDB
+        db = client['IT-project']
+        collection = db['Subjects-Details']  # Collection where your subjects are stored
+
+        # Fetch all subjects from the collection
+        subjects = list(collection.find({}, {'_id': 0, 'year': 1, 'semester': 1, 'campus': 1, 'coordinator': 1, 'subjectName': 1, 'subjectCode': 1, 'sections': 1}))
+        
+        # Debugging output to check the structure
+        print("Subjects fetched from MongoDB:", subjects)
+
+        return jsonify(subjects), 200  # Return JSON data
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to fetch subjects'}), 500
 
 
 # Route to handle file upload
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['GET','POST'])
 def upload_file():
+    if request.method == 'GET':
+        return render_template('upload.html')
+    
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 

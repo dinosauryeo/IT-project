@@ -105,6 +105,8 @@ def veri_vericode(email,vericode,password):
             return 3
         
 
+
+
 # def insert_student_data(file_path):
 #     client = login()
 #     collection = access_enrollment(client)
@@ -158,3 +160,16 @@ def access_fs(client):
     db = client['Students-Enrollment-Details-DataBase']
     fs = gridfs.GridFS(db)
     return fs
+
+#insert subject info to backend
+def insert_one(subject_data):
+    client = login()
+    db = client['IT-project']
+    try:
+        collection = db['Subjects-Details'] 
+        result = collection.insert_one(subject_data)
+        print(f"Inserted document with ID: {result.inserted_id}")  # Log the inserted document ID
+        return result.inserted_id  # Return the ID of the inserted document
+    except Exception as e:
+        print(f"An error occurred while inserting data: {e}")  # Log any errors
+        return None
