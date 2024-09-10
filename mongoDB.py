@@ -1,4 +1,3 @@
-
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import pymongo
@@ -173,3 +172,77 @@ def insert_one(subject_data):
     except Exception as e:
         print(f"An error occurred while inserting data: {e}")  # Log any errors
         return None
+    
+
+def read_studet_enrollment_from_mongo():
+    client = login()
+    db = client['Students-Enrollment-Details-DataBase']
+    #select sample student enrollment file
+    collection = db['Students-Enrollment-Details-20240905_150108'] 
+
+    try:
+        #read all data
+        data = collection.find()
+        
+        #store student enrollment data in to a list
+        student_enroll_list = []
+        for document in data:
+            student_dict={}
+            for key in document.keys():
+                # if the condition fit
+                if key in ["StudentID", "Course Start Date", "Student Name"]:
+                    student_dict[key] = document.get(key)
+                elif document.get(key) == "ENRL":
+                    student_dict[key] = document.get(key)
+
+
+            #if the student dictionary is not empty, add the data
+            if student_dict:
+                student_enroll_list .append(student_dict)
+                
+        return student_enroll_list 
+
+    except Exception as e:
+        print(f"An error occurred while reading data: {e}")
+        return None
+    
+def read_subject_info_from_mongo():
+    client = login()
+    db = client['IT-project']
+    #select sample subject file
+    collection = db['Subjects-Details']
+    try:
+        #read all data
+        data = collection.find()
+        #store subject data in to a list
+        subject_list = []
+        for document in data:
+            subject_dict={}
+            for key in document.keys():
+                # if the condition fit
+                if key in ["year", "semester", "subjectName","subjectCode"]:
+                    subject_dict[key] = document.get(key)
+                elif key in ["sections"]:
+                    #lab/lecture/tutorial
+                    section = document.get(key)
+                    mode_dict = {}
+                    for j in section.keys():
+                        #have lab/lecture/tutorial
+                        if section.get(j) is not None:
+                            #displayMode
+                            mode_dict[j] = section.get(j)
+                    subject_dict[key] = mode_dict
+
+            #if the student dictionary is not empty, add the data
+            if subject_dict:
+                subject_list .append(subject_dict)
+                
+        return subject_list 
+    
+    except Exception as e:
+        print(f"An error occurred while reading data: {e}")
+        return None
+    
+subjects = read_subject_info_from_mongo()
+for subject in subjects:
+    print(subject)
