@@ -174,7 +174,7 @@ def insert_one(subject_data):
         return None
     
 
-def read_studet_enrollment_from_mongo():
+def read_student_enrollment_from_mongo():
     client = login()
     db = client['Students-Enrollment-Details-DataBase']
     #select sample student enrollment file
@@ -188,14 +188,15 @@ def read_studet_enrollment_from_mongo():
         student_enroll_list = []
         for document in data:
             student_dict={}
+            enroll=[]
             for key in document.keys():
                 # if the condition fit
                 if key in ["StudentID", "Course Start Date", "Student Name"]:
                     student_dict[key] = document.get(key)
                 elif document.get(key) == "ENRL":
-                    student_dict[key] = document.get(key)
-
-
+                   #get the enroll subject into a list
+                   enroll.append(key)
+            student_dict["Enroll"] = enroll
             #if the student dictionary is not empty, add the data
             if student_dict:
                 student_enroll_list .append(student_dict)
@@ -228,7 +229,7 @@ def read_subject_info_from_mongo():
                     mode_dict = {}
                     for j in section.keys():
                         #have lab/lecture/tutorial
-                        if section.get(j) is not None:
+                        if section.get(j) != '':
                             #displayMode
                             mode_dict[j] = section.get(j)
                     subject_dict[key] = mode_dict
@@ -242,7 +243,3 @@ def read_subject_info_from_mongo():
     except Exception as e:
         print(f"An error occurred while reading data: {e}")
         return None
-    
-subjects = read_subject_info_from_mongo()
-for subject in subjects:
-    print(subject)
