@@ -10,7 +10,7 @@ import yagmail
 import mongoDB
 from datetime import datetime
 from mongoDB import insert_student_data
-
+from mongoDB import insert_student_data, read_student_enrollment_from_mongo, read_subject_info_from_mongo
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -258,3 +258,47 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
+
+
+
+
+
+
+@app.route('/generate_timetable', methods=['POST'])
+def generate_timetable():
+    print("generate_timetable route called")  # Add this line to debug
+    try:
+        students = read_student_enrollment_from_mongo()
+        subjects = read_subject_info_from_mongo()
+        
+        # 创建一个空的时间表
+        timetable = {}
+
+        # 假设每个学生有一个空的时间表
+        for student in students:
+            student_id = student["StudentID"]
+            timetable[student_id] = []
+
+            # 对于每个学生，找到他们的课程并生成时间表
+            enrolled_courses = student.get("ENRL", [])
+            for course in enrolled_courses:
+                # 查找科目详情
+                subject_info = next((sub for sub in subjects if sub["subjectCode"] == course), None)
+                if subject_info:
+                    timetable[student_id].append(subject_info)
+        
+        # 保存时间表到 MongoDB
+        client = mongoDB.login()
+        db = client['Students-Timetable']
+        collection = db['Timetables']
+        
+        # 插入时间表数据
+        result = collection.insert_one({
+            'timestamp': datetime.now(),
+            'timetable': timetable
+        })
+        
+        return jsonify({"status": "success", "message": "Timetable generated and saved", "id": str(result.inserted_id)}), 200
+    except Exception as e:
+        print(f"An error occurred while generating or saving timetable: {e}")
+        return jsonify({"status": "error", "message": "Failed to generate or save timetable"}), 500
