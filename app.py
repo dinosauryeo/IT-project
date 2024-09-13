@@ -10,7 +10,10 @@ import yagmail
 import mongoDB
 from datetime import datetime
 from mongoDB import insert_student_data
-from mongoDB import insert_student_data, read_student_enrollment_from_mongo, read_subject_info_from_mongo
+from mongoDB import generate_timetable_for_students
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -254,9 +257,8 @@ def relogin():
     else:
         return jsonify({"status": "fail","message": "password doesn't match"})
     
-if __name__ == '__main__':
-    app.run(debug=True)
-
+# if __name__ == '__main__':
+#     app.run(debug=True)
 
 
 
@@ -266,39 +268,26 @@ if __name__ == '__main__':
 
 @app.route('/generate_timetable', methods=['POST'])
 def generate_timetable():
-    print("generate_timetable route called")  # Add this line to debug
     try:
-        students = read_student_enrollment_from_mongo()
-        subjects = read_subject_info_from_mongo()
-        
-        # 创建一个空的时间表
-        timetable = {}
+        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+        timetable_db = client['Students-Timetable']
+        timetable_collection = timetable_db['Timetables']
+        # 调用生成timetable的函数
+        timetables = generate_timetable_for_students()
 
-        # 假设每个学生有一个空的时间表
-        for student in students:
-            student_id = student["StudentID"]
-            timetable[student_id] = []
+        if not timetables:
+            return jsonify({'status': 'error', 'message': 'Failed to generate timetable'})
 
-            # 对于每个学生，找到他们的课程并生成时间表
-            enrolled_courses = student.get("ENRL", [])
-            for course in enrolled_courses:
-                # 查找科目详情
-                subject_info = next((sub for sub in subjects if sub["subjectCode"] == course), None)
-                if subject_info:
-                    timetable[student_id].append(subject_info)
-        
-        # 保存时间表到 MongoDB
-        client = mongoDB.login()
-        db = client['Students-Timetable']
-        collection = db['Timetables']
-        
-        # 插入时间表数据
-        result = collection.insert_one({
-            'timestamp': datetime.now(),
-            'timetable': timetable
-        })
-        
-        return jsonify({"status": "success", "message": "Timetable generated and saved", "id": str(result.inserted_id)}), 200
+        # 存储到 MongoDB 的 Timetables 集合
+        for timetable in timetables:
+            timetable_collection.insert_one(timetable)
+
+        return jsonify({'status': 'success', 'message': 'Timetable generated and saved successfully!'})
+
     except Exception as e:
-        print(f"An error occurred while generating or saving timetable: {e}")
-        return jsonify({"status": "error", "message": "Failed to generate or save timetable"}), 500
+        print(f"Error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
+    
+
+if __name__ == '__main__':
+    app.run(debug=True)

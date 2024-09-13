@@ -7,6 +7,7 @@ from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 import gridfs
 from datetime import datetime
+import random
 
 def login():
     uri = "mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -174,72 +175,312 @@ def insert_one(subject_data):
         return None
     
 
-def read_student_enrollment_from_mongo():
+def get_student_enrollment_details():
     client = login()
     db = client['Students-Enrollment-Details-DataBase']
     #select sample student enrollment file
     collection = db['Students-Enrollment-Details-20240905_150108'] 
 
     try:
-        #read all data
-        data = collection.find()
-        
-        #store student enrollment data in to a list
-        student_enroll_list = []
-        for document in data:
-            student_dict={}
-            enroll=[]
-            for key in document.keys():
-                # if the condition fit
-                if key in ["StudentID", "Course Start Date", "Student Name"]:
-                    student_dict[key] = document.get(key)
-                elif document.get(key) == "ENRL":
-                   #get the enroll subject into a list
-                   enroll.append(key)
-            student_dict["Enroll"] = enroll
-            #if the student dictionary is not empty, add the data
-            if student_dict:
-                student_enroll_list .append(student_dict)
-                
-        return student_enroll_list 
+        # 查询集合中的所有学生记录
+        students_data = collection.find({})  # 获取所有学生数据
+
+        student_courses = []
+
+        for student in students_data:
+            student_id = student.get('StudentID')  # 获取 StudentID
+            courses = []
+
+            # 遍历所有的课程ID和状态
+            for course_id, status in student.items():
+                if isinstance(status, str) and status == 'ENRL':  # 找到状态为 "ENRL" 的课程
+                    courses.append(course_id)  # 记录课程ID
+
+            if student_id and courses:
+                student_courses.append({
+                    'StudentID': student_id,
+                    'EnrolledCourses': courses
+                })
+
+        return student_courses
 
     except Exception as e:
-        print(f"An error occurred while reading data: {e}")
+        print(f"Error: {str(e)}")
         return None
+
+# # 调用函数并输出结果
+# enrollment_details = get_student_enrollment_details()
+# if enrollment_details:
+#     for detail in enrollment_details:
+#         print(f"StudentID: {detail['StudentID']}, Enrolled Courses: {detail['EnrolledCourses']}")
     
-def read_subject_info_from_mongo():
+
+
+
+
+def get_subject_details():
     client = login()
     db = client['IT-project']
     #select sample subject file
     collection = db['Subjects-Details']
     try:
-        #read all data
-        data = collection.find()
-        #store subject data in to a list
-        subject_list = []
-        for document in data:
-            subject_dict={}
-            for key in document.keys():
-                # if the condition fit
-                if key in ["year", "semester", "subjectName","subjectCode"]:
-                    subject_dict[key] = document.get(key)
-                elif key in ["sections"]:
-                    #lab/lecture/tutorial
-                    section = document.get(key)
-                    mode_dict = {}
-                    for j in section.keys():
-                        #have lab/lecture/tutorial
-                        if section.get(j) != '':
-                            #displayMode
-                            mode_dict[j] = section.get(j)
-                    subject_dict[key] = mode_dict
+        # 查询所有课程的详细信息
+        subjects_data = collection.find({})  # 获取所有课程数据
 
-            #if the student dictionary is not empty, add the data
-            if subject_dict:
-                subject_list .append(subject_dict)
-                
-        return subject_list 
-    
+        subjects_details = []
+
+        for subject in subjects_data:
+            subject_code = subject.get('subjectCode')  # 获取课程的 subjectCode
+
+            # 初始化用于存储 section 详细信息的列表
+            subject_sections = {
+                'subjectCode': subject_code,
+                'sections': []
+            }
+
+            sections = subject.get('sections', {})  # 获取课程的 sections
+
+            for section_type, section_objects in sections.items():
+                # 遍历每种 section（如 lecture、tutorial、lab）
+                for section_object in section_objects:
+                    title = section_object.get('title')  # 获取 section 的 title
+
+                    # 初始化用于存储该 section 的数据
+                    section_details = {
+                        'type': section_type,
+                        'title': title,
+                        'modules': []
+                    }
+
+                    # 获取 modules 里面的时间段信息
+                    modules = section_object.get('modules', [])
+                    for module in modules:
+                        module_info = {
+                            'day': module.get('day'),
+                            'from': module.get('from'),
+                            'to': module.get('to'),
+                            'location': module.get('location'),
+                            'mode': module.get('mode')
+                        }
+                        section_details['modules'].append(module_info)
+
+                    # 将每个 section 及其模块信息添加到课程的 sections 列表中
+                    subject_sections['sections'].append(section_details)
+
+            subjects_details.append(subject_sections)
+
+        return subjects_details
+
     except Exception as e:
-        print(f"An error occurred while reading data: {e}")
+        print(f"Error: {str(e)}")
         return None
+
+# # 调用函数并输出结果
+# subject_details = get_subject_details()
+# if subject_details:
+#     for subject in subject_details:
+#         print(f"Subject Code: {subject['subjectCode']}")
+#         for section in subject['sections']:
+#             print(f"  Section Type: {section['type']}, Title: {section['title']}")
+#             for module in section['modules']:
+#                 print(f"    Day: {module['day']}, From: {module['from']}, To: {module['to']}, Location: {module['location']}, Mode: {module['mode']}")
+
+
+
+
+
+
+# def generate_timetable_for_students():
+#     client = login()
+#     students_db = client['Students-Enrollment-Details-DataBase']
+#     students_collection = students_db['Students-Enrollment-Details-20240905_150108']
+
+#     subjects_db = client['IT-project']
+#     subjects_collection = subjects_db['Subjects-Details']
+#     try:
+#         # 获取学生选课信息
+#         students_data = students_collection.find({})
+#         # 获取所有课程的详细信息
+#         subjects_data = list(subjects_collection.find({}))
+
+#         student_timetables = []
+
+#         for student in students_data:
+#             student_id = student.get('StudentID')
+#             enrolled_courses = []  # 记录该学生的timetable
+            
+#             for course_id, status in student.items():
+#                 if isinstance(status, str) and status == 'ENRL':  # 如果课程状态是 "ENRL"
+#                     # 在课程详细信息中找到对应的课程
+#                     matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
+                    
+#                     if matching_subject:
+#                         subject_code = matching_subject['subjectCode']
+#                         sections = matching_subject.get('sections', {})
+
+#                         for section_type, section_objects in sections.items():
+#                             for section_object in section_objects:
+#                                 title = section_object.get('title')
+                                
+#                                 # 随机选择一个 module
+#                                 modules = section_object.get('modules', [])
+#                                 if modules:
+#                                     selected_module = random.choice(modules)
+#                                     enrolled_courses.append({
+#                                         'SubjectCode': subject_code,
+#                                         'SectionType': section_type,
+#                                         'Title': title,
+#                                         'Day': selected_module.get('day'),
+#                                         'From': selected_module.get('from'),
+#                                         'To': selected_module.get('to'),
+#                                         'Location': selected_module.get('location'),
+#                                         'Mode': selected_module.get('mode')
+#                                     })
+            
+#             # 将该学生的timetable保存
+#             student_timetables.append({
+#                 'StudentID': student_id,
+#                 'Timetable': enrolled_courses
+#             })
+
+#         return student_timetables
+
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
+#         return None
+
+# # 生成学生的timetable
+# timetables = generate_timetable_for_students()
+
+# # 输出生成的timetable
+# if timetables:
+#     for student_timetable in timetables:
+#         print(f"StudentID: {student_timetable['StudentID']}")
+#         for course in student_timetable['Timetable']:
+#             print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
+#             print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
+
+
+
+
+
+
+
+def check_time_conflict(assigned_times, day, from_time, to_time):
+    """
+    检查给定的时间段是否与已分配的时间段冲突。
+    """
+    for time_slot in assigned_times:
+        if time_slot['day'] == day:
+            # 如果在同一天，检查时间是否重叠
+            if not (to_time <= time_slot['from'] or from_time >= time_slot['to']):
+                return True
+    return False
+
+
+
+def generate_timetable_for_students():
+    client = login()
+    students_db = client['Students-Enrollment-Details-DataBase']
+    students_collection = students_db['Students-Enrollment-Details-20240905_150108']
+
+    subjects_db = client['IT-project']
+    subjects_collection = subjects_db['Subjects-Details']
+    try:
+        # 获取学生选课信息
+        students_data = students_collection.find({})
+        # 获取所有课程的详细信息
+        subjects_data = list(subjects_collection.find({}))
+
+        student_timetables = []
+
+        for student in students_data:
+            student_id = student.get('StudentID')
+            enrolled_courses = []  # 记录该学生的timetable
+            assigned_times = []  # 记录该学生已分配的时间段
+            
+            for course_id, status in student.items():
+                if isinstance(status, str) and status == 'ENRL':  # 如果课程状态是 "ENRL"
+                    # 在课程详细信息中找到对应的课程
+                    matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
+                    
+                    if matching_subject:
+                        subject_code = matching_subject['subjectCode']
+                        sections = matching_subject.get('sections', {})
+
+                        for section_type, section_objects in sections.items():
+                            for section_object in section_objects:
+                                title = section_object.get('title')
+                                
+                                # 尝试随机选择一个 module
+                                modules = section_object.get('modules', [])
+                                if modules:
+                                    available_modules = modules.copy()  # 复制一份可用模块列表
+                                    selected_module = None
+
+                                    while available_modules:
+                                        potential_module = random.choice(available_modules)
+                                        from_time = potential_module.get('from')
+                                        to_time = potential_module.get('to')
+                                        day = potential_module.get('day')
+
+                                        # 检查是否与已分配时间冲突
+                                        if not check_time_conflict(assigned_times, day, from_time, to_time):
+                                            selected_module = potential_module
+                                            # 如果没有冲突，将该时间段加入已分配时间的列表
+                                            assigned_times.append({
+                                                'day': day,
+                                                'from': from_time,
+                                                'to': to_time
+                                            })
+                                            break
+                                        else:
+                                            # 如果冲突，从可用模块中移除
+                                            available_modules.remove(potential_module)
+
+                                    # 如果找到没有冲突的时间段
+                                    if selected_module:
+                                        enrolled_courses.append({
+                                            'SubjectCode': subject_code,
+                                            'SectionType': section_type,
+                                            'Title': title,
+                                            'Day': selected_module.get('day'),
+                                            'From': selected_module.get('from'),
+                                            'To': selected_module.get('to'),
+                                            'Location': selected_module.get('location'),
+                                            'Mode': selected_module.get('mode')
+                                        })
+                                    else:
+                                        print(f"Warning: 无法为学生 {student_id} 的课程 {subject_code} 安排无冲突的时间段")
+
+            # 将该学生的timetable保存
+            student_timetables.append({
+                'StudentID': student_id,
+                'Timetable': enrolled_courses
+            })
+
+        return student_timetables
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None
+
+# 生成学生的timetable
+timetables = generate_timetable_for_students()
+
+
+
+
+
+
+
+
+
+
+# # 输出生成的timetable
+# if timetables:
+#     for student_timetable in timetables:
+#         print(f"StudentID: {student_timetable['StudentID']}")
+#         for course in student_timetable['Timetable']:
+#             print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
+#             print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")

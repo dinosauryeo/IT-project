@@ -4,11 +4,9 @@ function generateTimetable() {
         headers: {
             'Content-Type': 'application/json'
         },
-        // Adding a body with empty object as your Flask route doesn’t need specific data
-        body: JSON.stringify({})
+        body: JSON.stringify({})  // 不需要额外数据
     })
     .then(response => {
-        // Check if the response is OK (status code 200-299)
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -16,7 +14,6 @@ function generateTimetable() {
     })
     .then(data => {
         if (data.status === 'success') {
-            console.log('Timetable generated and saved with ID:', data.id);
             alert('Timetable generated and saved successfully!');
         } else {
             alert('Failed to generate timetable: ' + data.message);
