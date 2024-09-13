@@ -290,6 +290,20 @@ def get_subject_details():
 
 
 
+
+# def check_time_conflict(assigned_times, day, from_time, to_time):
+#     """
+#     检查给定的时间段是否与已分配的时间段冲突。
+#     """
+#     for time_slot in assigned_times:
+#         if time_slot['day'] == day:
+#             # 如果在同一天，检查时间是否重叠
+#             if not (to_time <= time_slot['from'] or from_time >= time_slot['to']):
+#                 return True
+#     return False
+
+
+
 # def generate_timetable_for_students():
 #     client = login()
 #     students_db = client['Students-Enrollment-Details-DataBase']
@@ -308,6 +322,7 @@ def get_subject_details():
 #         for student in students_data:
 #             student_id = student.get('StudentID')
 #             enrolled_courses = []  # 记录该学生的timetable
+#             assigned_times = []  # 记录该学生已分配的时间段
             
 #             for course_id, status in student.items():
 #                 if isinstance(status, str) and status == 'ENRL':  # 如果课程状态是 "ENRL"
@@ -322,21 +337,47 @@ def get_subject_details():
 #                             for section_object in section_objects:
 #                                 title = section_object.get('title')
                                 
-#                                 # 随机选择一个 module
+#                                 # 尝试随机选择一个 module
 #                                 modules = section_object.get('modules', [])
 #                                 if modules:
-#                                     selected_module = random.choice(modules)
-#                                     enrolled_courses.append({
-#                                         'SubjectCode': subject_code,
-#                                         'SectionType': section_type,
-#                                         'Title': title,
-#                                         'Day': selected_module.get('day'),
-#                                         'From': selected_module.get('from'),
-#                                         'To': selected_module.get('to'),
-#                                         'Location': selected_module.get('location'),
-#                                         'Mode': selected_module.get('mode')
-#                                     })
-            
+#                                     available_modules = modules.copy()  # 复制一份可用模块列表
+#                                     selected_module = None
+
+#                                     while available_modules:
+#                                         potential_module = random.choice(available_modules)
+#                                         from_time = potential_module.get('from')
+#                                         to_time = potential_module.get('to')
+#                                         day = potential_module.get('day')
+
+#                                         # 检查是否与已分配时间冲突
+#                                         if not check_time_conflict(assigned_times, day, from_time, to_time):
+#                                             selected_module = potential_module
+#                                             # 如果没有冲突，将该时间段加入已分配时间的列表
+#                                             assigned_times.append({
+#                                                 'day': day,
+#                                                 'from': from_time,
+#                                                 'to': to_time
+#                                             })
+#                                             break
+#                                         else:
+#                                             # 如果冲突，从可用模块中移除
+#                                             available_modules.remove(potential_module)
+
+#                                     # 如果找到没有冲突的时间段
+#                                     if selected_module:
+#                                         enrolled_courses.append({
+#                                             'SubjectCode': subject_code,
+#                                             'SectionType': section_type,
+#                                             'Title': title,
+#                                             'Day': selected_module.get('day'),
+#                                             'From': selected_module.get('from'),
+#                                             'To': selected_module.get('to'),
+#                                             'Location': selected_module.get('location'),
+#                                             'Mode': selected_module.get('mode')
+#                                         })
+#                                     else:
+#                                         print(f"Warning: 无法为学生 {student_id} 的课程 {subject_code} 安排无冲突的时间段")
+
 #             # 将该学生的timetable保存
 #             student_timetables.append({
 #                 'StudentID': student_id,
@@ -362,9 +403,7 @@ def get_subject_details():
 
 
 
-
-
-
+import random
 
 def check_time_conflict(assigned_times, day, from_time, to_time):
     """
@@ -374,9 +413,8 @@ def check_time_conflict(assigned_times, day, from_time, to_time):
         if time_slot['day'] == day:
             # 如果在同一天，检查时间是否重叠
             if not (to_time <= time_slot['from'] or from_time >= time_slot['to']):
-                return True
-    return False
-
+                return True  # 发生冲突
+    return False  # 无冲突
 
 
 def generate_timetable_for_students():
@@ -386,6 +424,7 @@ def generate_timetable_for_students():
 
     subjects_db = client['IT-project']
     subjects_collection = subjects_db['Subjects-Details']
+
     try:
         # 获取学生选课信息
         students_data = students_collection.find({})
@@ -396,91 +435,107 @@ def generate_timetable_for_students():
 
         for student in students_data:
             student_id = student.get('StudentID')
-            enrolled_courses = []  # 记录该学生的timetable
-            assigned_times = []  # 记录该学生已分配的时间段
-            
-            for course_id, status in student.items():
-                if isinstance(status, str) and status == 'ENRL':  # 如果课程状态是 "ENRL"
-                    # 在课程详细信息中找到对应的课程
-                    matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
-                    
-                    if matching_subject:
-                        subject_code = matching_subject['subjectCode']
-                        sections = matching_subject.get('sections', {})
 
-                        for section_type, section_objects in sections.items():
-                            for section_object in section_objects:
-                                title = section_object.get('title')
-                                
-                                # 尝试随机选择一个 module
-                                modules = section_object.get('modules', [])
-                                if modules:
-                                    available_modules = modules.copy()  # 复制一份可用模块列表
-                                    selected_module = None
+            for attempt in range(10):  # 最多尝试10次
+                enrolled_courses = []  # 记录该学生的时间表
+                assigned_times = []  # 记录已分配的时间段
+                conflict = False  # 是否发生冲突
 
-                                    while available_modules:
-                                        potential_module = random.choice(available_modules)
-                                        from_time = potential_module.get('from')
-                                        to_time = potential_module.get('to')
-                                        day = potential_module.get('day')
+                # 遍历该学生选的所有课程
+                for course_id, status in student.items():
+                    if isinstance(status, str) and status == 'ENRL':  # 如果课程状态是 "ENRL"
+                        # 在课程详细信息中找到对应的课程
+                        matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
 
-                                        # 检查是否与已分配时间冲突
+                        if matching_subject:
+                            subject_code = matching_subject['subjectCode']
+                            sections = matching_subject.get('sections', {})
+
+                            # 遍历课程的所有 section 类型（Lecture, Tutorial, Lab等）
+                            for section_type, section_objects in sections.items():
+                                for section_object in section_objects:
+                                    title = section_object.get('title')
+                                    
+                                    # 随机打乱模块顺序，每次尝试时顺序不同
+                                    modules = section_object.get('modules', [])
+                                    random.shuffle(modules)  # 打乱模块的顺序，确保每次选择不同
+
+                                    module_assigned = False  # 标识当前 section 是否分配成功
+
+                                    # 尝试分配每一个时间模块
+                                    for module in modules:
+                                        day = module.get('day')
+                                        from_time = module.get('from')
+                                        to_time = module.get('to')
+
+                                        # 检查是否与已分配的时间冲突
                                         if not check_time_conflict(assigned_times, day, from_time, to_time):
-                                            selected_module = potential_module
-                                            # 如果没有冲突，将该时间段加入已分配时间的列表
+                                            # 如果没有冲突，分配该时间段
                                             assigned_times.append({
                                                 'day': day,
                                                 'from': from_time,
                                                 'to': to_time
                                             })
-                                            break
-                                        else:
-                                            # 如果冲突，从可用模块中移除
-                                            available_modules.remove(potential_module)
+                                            enrolled_courses.append({
+                                                'SubjectCode': subject_code,
+                                                'SectionType': section_type,
+                                                'Title': title,
+                                                'Day': module.get('day'),
+                                                'From': module.get('from'),
+                                                'To': module.get('to'),
+                                                'Location': module.get('location'),
+                                                'Mode': module.get('mode')
+                                            })
+                                            module_assigned = True  # 成功分配
+                                            break  # 成功后跳出 module 循环
 
-                                    # 如果找到没有冲突的时间段
-                                    if selected_module:
-                                        enrolled_courses.append({
-                                            'SubjectCode': subject_code,
-                                            'SectionType': section_type,
-                                            'Title': title,
-                                            'Day': selected_module.get('day'),
-                                            'From': selected_module.get('from'),
-                                            'To': selected_module.get('to'),
-                                            'Location': selected_module.get('location'),
-                                            'Mode': selected_module.get('mode')
-                                        })
-                                    else:
-                                        print(f"Warning: 无法为学生 {student_id} 的课程 {subject_code} 安排无冲突的时间段")
+                                    # 如果该 section 没有分配成功，标记冲突
+                                    if not module_assigned:
+                                        conflict = True
+                                        # print("aaaaaaaaaaaaaa")
+                                        break  # 跳出 section 循环
 
-            # 将该学生的timetable保存
-            student_timetables.append({
-                'StudentID': student_id,
-                'Timetable': enrolled_courses
-            })
+                                # 如果发生冲突，提前结束该课程的处理
+                                if conflict:
+                                    break
 
+                            # 如果发生冲突，提前结束课程遍历
+                            if conflict:
+                                break
+
+                # 如果所有课程都成功分配，则保存时间表
+                if not conflict:
+                    student_timetables.append({
+                        'StudentID': student_id,
+                        'Timetable': enrolled_courses
+                    })
+                    break  # 成功生成时间表，退出尝试循环
+                else:
+                    # 每次冲突重新开始时，打印失败信息
+                    print(f"Attempt {attempt + 1} failed for student {student_id}")
+
+                # 如果10次尝试仍然失败
+                if attempt == 9:
+                    print(f"Error: 学生 {student_id} 的课程无法安排无冲突的时间表")
+        
         return student_timetables
 
     except Exception as e:
         print(f"Error: {str(e)}")
         return None
 
-# 生成学生的timetable
+
+# 生成时间表
 timetables = generate_timetable_for_students()
 
+# 输出生成的时间表
+if timetables:
+    for student_timetable in timetables:
+        print(f"StudentID: {student_timetable['StudentID']}")
+        for course in student_timetable['Timetable']:
+            print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
+            print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
 
 
 
 
-
-
-
-
-
-# # 输出生成的timetable
-# if timetables:
-#     for student_timetable in timetables:
-#         print(f"StudentID: {student_timetable['StudentID']}")
-#         for course in student_timetable['Timetable']:
-#             print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
-#             print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
