@@ -273,10 +273,13 @@ def generate_timetable():
         timetable_db = client['Students-Timetable']
         timetable_collection = timetable_db['Timetables']
         # 调用生成timetable的函数
-        timetables = generate_timetable_for_students()
+        timetables, error_messages = generate_timetable_for_students()
 
         if not timetables:
             return jsonify({'status': 'error', 'message': 'Failed to generate timetable'})
+        
+        if error_messages:
+            return jsonify({'status': 'error', 'message': error_messages})
 
         # 存储到 MongoDB 的 Timetables 集合
         for timetable in timetables:

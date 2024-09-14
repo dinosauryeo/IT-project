@@ -425,6 +425,8 @@ def generate_timetable_for_students():
     subjects_db = client['IT-project']
     subjects_collection = subjects_db['Subjects-Details']
 
+    error_messages = []  # 用于收集错误信息
+
     try:
         # 获取学生选课信息
         students_data = students_collection.find({})
@@ -511,14 +513,16 @@ def generate_timetable_for_students():
                     })
                     break  # 成功生成时间表，退出尝试循环
                 else:
+                    attempt+1
                     # 每次冲突重新开始时，打印失败信息
-                    print(f"Attempt {attempt + 1} failed for student {student_id}")
+                    # print(f"Attempt {attempt + 1} failed for student {student_id}")
 
                 # 如果10次尝试仍然失败
                 if attempt == 9:
-                    print(f"Error: 学生 {student_id} 的课程无法安排无冲突的时间表")
+                    error_message = f"Error: 学生 {student_id} 的课程无法安排无冲突的时间表"
+                    error_messages.append(error_message)  # 收集错误信息
         
-        return student_timetables
+        return student_timetables, error_messages  # 返回时间表和错误信息
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -526,16 +530,17 @@ def generate_timetable_for_students():
 
 
 # 生成时间表
-timetables = generate_timetable_for_students()
+timetables, error_messages = generate_timetable_for_students()
 
-# 输出生成的时间表
-if timetables:
-    for student_timetable in timetables:
-        print(f"StudentID: {student_timetable['StudentID']}")
-        for course in student_timetable['Timetable']:
-            print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
-            print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
+# # 输出生成的时间表
+# if timetables:
+#     for student_timetable in timetables:
+#         print(f"StudentID: {student_timetable['StudentID']}")
+#         for course in student_timetable['Timetable']:
+#             print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
+#             print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
 
-
-
-
+# # 把错误信息传递到前端显示
+# if error_messages:
+#     for error in error_messages:
+#         print(f"前端显示: {error}")
