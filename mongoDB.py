@@ -437,6 +437,7 @@ def generate_timetable_for_students():
 
         for student in students_data:
             student_id = student.get('StudentID')
+            personal_email = student.get('Personal Email')  # 读取个人邮箱
 
             for attempt in range(10):  # 最多尝试10次
                 enrolled_courses = []  # 记录该学生的时间表
@@ -509,6 +510,7 @@ def generate_timetable_for_students():
                 if not conflict:
                     student_timetables.append({
                         'StudentID': student_id,
+                        'PersonalEmail': personal_email,  # 将个人邮箱添加到结果中
                         'Timetable': enrolled_courses
                     })
                     break  # 成功生成时间表，退出尝试循环
@@ -532,15 +534,16 @@ def generate_timetable_for_students():
 # 生成时间表
 timetables, error_messages = generate_timetable_for_students()
 
-# # 输出生成的时间表
-# if timetables:
-#     for student_timetable in timetables:
-#         print(f"StudentID: {student_timetable['StudentID']}")
-#         for course in student_timetable['Timetable']:
-#             print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
-#             print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
 
-# # 把错误信息传递到前端显示
-# if error_messages:
-#     for error in error_messages:
-#         print(f"前端显示: {error}")
+# 输出生成的时间表
+if timetables:
+    for student_timetable in timetables:
+        print(f"StudentID: {student_timetable['StudentID']}, PersonalEmail: {student_timetable['PersonalEmail']}")
+        for course in student_timetable['Timetable']:
+            print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
+            print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
+
+# 把错误信息传递到前端显示
+if error_messages:
+    for error in error_messages:
+        print(f"前端显示: {error}")
