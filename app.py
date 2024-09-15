@@ -50,7 +50,6 @@ def student_page():
 def generate_page():
     return render_template('generate.html')
 
-
 # Route to serve the reset password HTML file
 @app.route('/reset_page')
 def reset_page():
@@ -111,7 +110,7 @@ def createsubject_page():
     }
 
     try:
-        inserted_id = mongoDB.insert_one(subject_data)
+        inserted_id = mongoDB.insert_subject(subject_data,year, semester)
         print(f"Inserted document ID: {inserted_id}")  # Log inserted document ID
         return jsonify({'status': 'success'}), 200
     except Exception as e:
@@ -138,8 +137,9 @@ def get_subjects():
         return jsonify({'status': 'error', 'message': 'Failed to fetch subjects'}), 500
 
 
+# 14/09 10:06 last modify
 # Route to handle file upload
-@app.route('/upload', methods=['GET','POST'])
+@app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'GET':
         return render_template('upload.html')
@@ -148,19 +148,26 @@ def upload_file():
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['file']
+    year = request.form.get('year')  # Get the year from the form data
+    semester = request.form.get('semester')  # Get the semester from the form data
 
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
     if file:
-        # Save the file to the server
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        # Create a directory with year and semester if it doesn't exist
+        folder_name = f"{year}_{semester}"
+        folder_path = os.path.join(app.config['UPLOAD_FOLDER'], folder_name)
+        os.makedirs(folder_path, exist_ok=True)
+        
+        # Save the file to the server inside the year_semester folder
+        filepath = os.path.join(folder_path, file.filename)
         file.save(filepath)
 
         # Process the file as needed (e.g., store data in database)
         if file.filename.endswith('.csv'):
-            # Call the new function to insert data into MongoDB
-            insert_student_data(filepath)
+            # Call the function to insert data into MongoDB
+            insert_student_data(filepath, year, semester)
         elif file.filename.endswith('.xlsx'):
             df = pd.read_excel(filepath)
             # Optionally handle Excel files here
@@ -168,14 +175,6 @@ def upload_file():
             return jsonify({'error': 'Invalid file format'}), 400
 
         return jsonify({'message': 'File uploaded and data stored successfully'})
-
-
-
-
-
-
-
-
 
 #route to handle sending verification email
 @app.route('/send_vericode', methods=['POST'])
@@ -224,7 +223,7 @@ def send_vericode():
     except Exception as e:
         print(f"Failed to send email: {e}")
         return jsonify({"status": "fail","message": "Failed to send email"})
-    
+
 #route to handle reseting and relogin 
 @app.route('/reset_password', methods=['POST'])
 def relogin():
@@ -259,11 +258,6 @@ def relogin():
     
 # if __name__ == '__main__':
 #     app.run(debug=True)
-
-
-
-
-
 
 
 @app.route('/generate_timetable', methods=['POST'])

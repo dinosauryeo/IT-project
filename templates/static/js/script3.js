@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const coordinator = form.querySelector('#coordinator').value;
         const subjectName = form.querySelector('#subject-name').value;
         const subjectCode = form.querySelector('#subject-code').value;
-
+    
         // Gather section data
         const sections = ['lecture', 'tutorial', 'lab'].reduce((acc, type) => {
             const sectionDivs = document.querySelectorAll(`#${type}-sections .section`);
@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         day: moduleDiv.querySelector(`select[name="${type}-day"]`).value,
                         from: moduleDiv.querySelector(`select[name="${type}-from"]`).value,
                         to: moduleDiv.querySelector(`select[name="${type}-to"]`).value,
+                        limit: moduleDiv.querySelector(`input[name="${type}-limit"]`).value, // Get the student limit
                         name: moduleDiv.querySelector(`input[name="${type}-name"]`).value,
                         location: moduleDiv.querySelector(`input[name="${type}-location"]`).value,
                         mode: moduleDiv.querySelector(`select[name="${type}-mode"]`).value,
@@ -290,15 +291,16 @@ function addModule(sectionDiv, sectionType) {
             <select id="${sectionType}-to-${sectionNumber}-${moduleCount}" name="${sectionType}-to" class="time-dropdown">
                 <option value="" disabled selected>To</option>
             </select>
-        </div>
-        <div class="select-row">
-            <input type="text" id="${sectionType}-name-${sectionNumber}-${moduleCount}" name="${sectionType}-name" placeholder="${sectionType === 'lecture' ? 'Lecturer' : 'Tutor'}">
-            <input type="text" id="${sectionType}-location-${sectionNumber}-${moduleCount}" name="${sectionType}-location" placeholder="Location">
+            <input type="number" id="${sectionType}-limit-${sectionNumber}-${moduleCount}" name="${sectionType}-limit" placeholder="Student Limit" min="1">
             <select id="${sectionType}-mode-${sectionNumber}-${moduleCount}" name="${sectionType}-mode">
                 <option value="" disabled selected>Delivery Modes</option>
                 <option value="online">Online</option>
                 <option value="oncampus">On Campus</option>
             </select>
+        </div>
+        <div class="select-row">
+            <input type="text" id="${sectionType}-name-${sectionNumber}-${moduleCount}" name="${sectionType}-name" placeholder="${sectionType === 'lecture' ? 'Lecturer' : 'Tutor'}">
+            <input type="text" id="${sectionType}-location-${sectionNumber}-${moduleCount}" name="${sectionType}-location" placeholder="Location">
         </div>
     `;
 

@@ -131,7 +131,7 @@ def veri_vericode(email,vericode,password):
 
 
 
-
+"""
 def insert_student_data(file_path):
     client = login()
     collection = create_new_collection(client, file_path)
@@ -155,11 +155,51 @@ def create_new_collection(client, file_path):
     collection = db[collection_name]
     
     return collection
+    """
+    
+def create_new_collection(year, semester):
+    client = login()
+    db = client[str(year)+"_Sem"+str(semester)]
+    
+    # Generate a unique collection name based on the year, semester, and current time
+    collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    # Create a new collection
+    collection = db[collection_name]
+    
+    return collection
 
+def insert_student_data(file_path, year, semester):
+    client = login()
+    db = client[str(year)+"_Sem"+str(semester)]
+    collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    collection = db[collection_name]
+
+    # Read CSV file
+    df = pd.read_csv(file_path)
+    
+    # Insert each row into MongoDB
+    for index, row in df.iterrows():
+        student_data = row.to_dict()  # Convert each row to a dictionary
+        collection.insert_one(student_data)  # Insert into MongoDB collection
+        
 def access_fs(client):
     db = client['Students-Enrollment-Details-DataBase']
     fs = gridfs.GridFS(db)
     return fs
+
+#insert subject info to backend
+def insert_subject(subject_data,year, semester):
+    client = login()
+    db = client[str(year)+"_Sem"+str(semester)]
+    try:
+        collection = db['Subjects-Details'] 
+        result = collection.insert_one(subject_data)
+        print(f"Inserted document with ID: {result.inserted_id}")  # Log the inserted document ID
+        return result.inserted_id  # Return the ID of the inserted document
+    except Exception as e:
+        print(f"An error occurred while inserting data: {e}")  # Log any errors
+        return None
 
 #insert subject info to backend
 def insert_one(subject_data):
@@ -530,7 +570,7 @@ def generate_timetable_for_students():
         print(f"Error: {str(e)}")
         return None
 
-
+"""
 # 生成时间表
 timetables, error_messages = generate_timetable_for_students()
 
@@ -547,3 +587,4 @@ if timetables:
 if error_messages:
     for error in error_messages:
         print(f"前端显示: {error}")
+"""
