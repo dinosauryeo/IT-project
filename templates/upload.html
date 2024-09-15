@@ -39,9 +39,9 @@
                 <!-- Dropdown for Semester -->
                 <label for="semesterSelect">Semester:</label>
                 <select id="semesterSelect" name="semester" required>
-                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester1">Semester 1</option>
                     <option value="Winter">Winter</option>
-                    <option value="Semester 2">Semester 2</option>
+                    <option value="Semester2">Semester 2</option>
                     <option value="Summer">Summer</option>
                 </select>
                 
@@ -51,21 +51,6 @@
             <div id="uploadStatus"></div>
         </div>       
     </div>
-    <script>
-        // Populate the Year dropdown with past 5 years and 1 year ahead
-        window.onload = function() {
-            const yearSelect = document.getElementById('yearSelect');
-            const currentYear = new Date().getFullYear();
-            
-            // Adding years to the select list
-            for (let i = currentYear - 5; i <= currentYear + 1; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i;
-                yearSelect.appendChild(option);
-            }
-        };
-    </script>
     <script src="static/js/script5.js"></script>
 </body>
 </html>

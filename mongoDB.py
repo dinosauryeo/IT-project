@@ -159,7 +159,7 @@ def create_new_collection(client, file_path):
     
 def create_new_collection(year, semester):
     client = login()
-    db = client[str(year)+"_Sem"+str(semester)]
+    db = client[str(year)+"_"+str(semester)]
     
     # Generate a unique collection name based on the year, semester, and current time
     collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -171,7 +171,8 @@ def create_new_collection(year, semester):
 
 def insert_student_data(file_path, year, semester):
     client = login()
-    db = client[str(year)+"_Sem"+str(semester)]
+    print(str(year)+"_"+str(semester))
+    db = client[str(year)+"_"+str(semester)]
     collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     collection = db[collection_name]
 
@@ -191,7 +192,7 @@ def access_fs(client):
 #insert subject info to backend
 def insert_subject(subject_data,year, semester):
     client = login()
-    db = client[str(year)+"_Sem"+str(semester)]
+    db = client[str(year)+"_"+str(semester)]
     try:
         collection = db['Subjects-Details'] 
         result = collection.insert_one(subject_data)

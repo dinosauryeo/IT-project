@@ -197,6 +197,19 @@ def send_vericode():
     #genereate the verification code
     verification_code = random.randint(100000, 999999)
     
+    respons = send_email({user_email:["Verification code to reset password", "Your verification code is " + str(verification_code) +" ,please use this within one minute"]})
+    
+    if respons == 1:
+        #store the verification code in the system
+        mongoDB.input_user_data(user_email,"verification_code",verification_code)
+        mongoDB.input_user_data(user_email,"vericode_date_sent",datetime.now())
+        return jsonify({"status": "success","message": "Verification code sent successfully, please use it within one minute"})
+    
+    else:
+        print(f"Failed to send email: {respons}")
+        return jsonify({"status": "fail","message": "Failed to send email"})
+    
+    """
     #construct the email body
     msg = MIMEMultipart()
     msg['From'] = username
@@ -223,6 +236,39 @@ def send_vericode():
     except Exception as e:
         print(f"Failed to send email: {e}")
         return jsonify({"status": "fail","message": "Failed to send email"})
+"""
+
+def send_email(email_list):
+    #setup information required to send the email
+    server = 'smtp.gmail.com'
+    port = 587
+    username = "dinosauryeo@gmail.com"
+    password = "jucvnvbkwtgcehjo"
+    
+    for key in email_list.keys():
+        print(key)
+        #construct the email body
+        msg = MIMEMultipart()
+        msg['From'] = username
+        msg['To'] = key
+        msg['Subject'] = email_list[key][0]
+        body = email_list[key][1]
+        msg.attach(MIMEText(body, 'plain'))
+
+        try:
+            with smtplib.SMTP(server, port) as server:
+                #create connection
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls() 
+                
+                #login and send the mail
+                server.login(username, password)
+                server.sendmail(username, key, msg.as_string())
+        
+        except Exception as e:
+            return e
+    
+    return 1
 
 #route to handle reseting and relogin 
 @app.route('/reset_password', methods=['POST'])
@@ -288,3 +334,4 @@ def generate_timetable():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
