@@ -64,12 +64,27 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
-
 // 14/09 10:21 modify
 // write send email to student 
 function SendEmailToStudents(){
-    alert("sent!(NOT ACTUALLY)");
+    fetch('/send_timetable', {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log("timetable(fake) sent");
+            alert("Timetable had been sent");
+        } 
+        else {
+            console.log("timetable failed to send");
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+    });
 }
 
 //Hover event for Home link

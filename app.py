@@ -6,6 +6,8 @@ import sqlite3  # Example using SQLite for database
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 import yagmail
 import mongoDB
 from datetime import datetime
@@ -188,12 +190,6 @@ def send_vericode():
     if not email_exists:
         return jsonify({"status": "fail","message": "email doesnt exists"})
     
-    #setup information required to send the email
-    server = 'smtp.gmail.com'
-    port = 587
-    username = "dinosauryeo@gmail.com"
-    password = "jucvnvbkwtgcehjo"
-    
     #genereate the verification code
     verification_code = random.randint(100000, 999999)
     
@@ -209,35 +205,22 @@ def send_vericode():
         print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
     
-    """
-    #construct the email body
-    msg = MIMEMultipart()
-    msg['From'] = username
-    msg['To'] = user_email
-    msg['Subject'] = "Verification code to reset password"
-    body = "Your verification code is " + str(verification_code) +" ,please use this within one minute"
-    msg.attach(MIMEText(body, 'plain'))
-
-    try:
-        with smtplib.SMTP(server, port) as server:
-            #create connection
-            server = smtplib.SMTP('smtp.gmail.com', 587)
-            server.starttls() 
-            
-            #login and send the mail
-            server.login(username, password)
-            server.sendmail(username, user_email, msg.as_string())
-            
-            #store the verification code in the system
-            mongoDB.input_user_data(user_email,"verification_code",verification_code)
-            mongoDB.input_user_data(user_email,"vericode_date_sent",datetime.now())
-            return jsonify({"status": "success","message": "Verification code sent successfully, please use it within one minute"})
+#route to handle sending verification email
+@app.route('/send_timetable', methods=['POST'])    
+def send_timetable():
+    #have to add logic to combine the timetable with student's email(work to be done)
+    respons = send_email({"jetng111@gmail.com":["student timetable", "this would be the student timetable", "excel_sample.xlsx"]})
     
-    except Exception as e:
-        print(f"Failed to send email: {e}")
+    if respons == 1:
+        return jsonify({"status": "success","message": "timetable sent to student!"})
+    
+    else:
+        print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
-"""
+    
 
+#to send email out to a list of email, using a dictionary structure where the key would be receiver email and the value would be a list where the first element
+#would be the email subject, second element would be the email body and possibiliy a third element which would be a excel file to send
 def send_email(email_list):
     #setup information required to send the email
     server = 'smtp.gmail.com'
@@ -254,6 +237,24 @@ def send_email(email_list):
         msg['Subject'] = email_list[key][0]
         body = email_list[key][1]
         msg.attach(MIMEText(body, 'plain'))
+        
+        #attch the excel file if it exists
+        if(len(email_list[key]) == 3):
+            file_path = email_list[key][2] 
+            with open(file_path, "rb") as attachment:
+                # Create a MIMEBase object and set its payload to the file content
+                mime_base = MIMEBase('application', 'octet-stream')
+                mime_base.set_payload(attachment.read())
+            
+                # Encode the payload in base64
+                encoders.encode_base64(mime_base)
+                
+                # Add a header to the attachment
+                mime_base.add_header('Content-Disposition', f'attachment; filename="{file_path.split("/")[-1]}"')
+                
+                # Attach the Excel file to the message
+                msg.attach(mime_base)
+            
 
         try:
             with smtplib.SMTP(server, port) as server:
