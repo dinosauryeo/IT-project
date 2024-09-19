@@ -26,67 +26,65 @@
             <li id="logout-link" onclick="logout()" class="logout">Logout</li>
         </ul>
     </div>
-<!-- Hidden Create a Subject Page -->
-        <!-- <div id="create-subject" class="page"> -->
-            <div class="container1">
-                <div class="up-bar">
-                    <div class="subjects-text">
-                        <h2>Create a Subject</h2>
-                    </div>
-                    <form id="createSubjectForm">
-                        <div class="form-group">
-                            <select id="year" name="year" placeholder="Year">
-                                <option value="" disabled selected>Year</option>
-                            </select>
-                            <select id="semester" name="semester">
-                                <option value="" disabled selected>Semester</option>
-                                <option value="semester1">Semester 1</option>
-                                <option value="winter">Winter</option>
-                                <option value="semester2">Semester 2</option>
-                                <option value="summer">Summer</option>
-                            </select>
-                            <select id="campus" name="campus">
-                                <option value="" disabled selected>Campus</option>
-                                <option value="melbourne">Melbourne</option>
-                                <option value="geelong">Geelong</option>
-                                <option value="adelaide">Adelaide</option>
-                                <option value="sydney">Sydney</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="coordinator" name="coordinator" placeholder="Subject Coordinator">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="subject-name" name="subject-name" placeholder="Subject Name">
-                            <input type="text" id="subject-code" name="subject-code" placeholder="Subject Code">
-                        </div>
-                    </form>
-                </div>
-
-                <div class="button-container">
-                    <button type="button" id="add-Lecture">+ Lecture</button>
-                    <button type="button" id="add-Tutorial">+ Tutorial</button>
-                    <button type="button" id="add-Lab">+ Lab</button>
-                </div>
-                
-
-                <div class="down-bar">
-                    <div id="lecture-sections" class="section-category">
-                        <!-- Lecture sections will be added here -->
-                    </div>
-                    <div id="tutorial-sections" class="section-category">
-                        <!-- Tutorial sections will be added here -->
-                    </div>
-                    <div id="lab-sections" class="section-category">
-                        <!-- Lab sections will be added here -->
-                    </div>
-                </div>
-
-                <button type="submit" id="create-subject">Create Subject</button>
+    <!-- Edit Subject Page -->
+    <div class="container1" id="edit-subject-container">
+        <div class="up-bar">
+            <div class="subjects-text">
+                <h2>Edit Subject</h2>
             </div>
-        <!-- </div> -->
-        <!-- end of hidden create a subject page -->
-    <script src="static/js/script3.js"></script>
+            <form id="editSubjectForm">
+                <div class="form-group">
+                    <select id="edit-year" name="year" placeholder="Year">
+                        <option value="" disabled selected>Year</option>
+                    </select>
+                    <select id="edit-semester" name="semester">
+                        <option value="" disabled selected>Semester</option>
+                        <option value="Semester1">Semester 1</option>
+                        <option value="Winter">Winter</option>
+                        <option value="Semester2">Semester 2</option>
+                        <option value="Summer">Summer</option>
+                    </select>
+                    <select id="edit-campus" name="campus">
+                        <option value="" disabled selected>Campus</option>
+                        <option value="Melbourne">Melbourne</option>
+                        <option value="Geelong">Geelong</option>
+                        <option value="Adelaide">Adelaide</option>
+                        <option value="Sydney">Sydney</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="edit-coordinator" name="coordinator" placeholder="Subject Coordinator">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="edit-subject-name" name="subject-name" placeholder="Subject Name">
+                    <input type="text" id="edit-subject-code" name="subject-code" placeholder="Subject Code" readonly>
+                </div>
+            </form>
+        </div>
+
+        <div class="down-bar">
+            <div id="edit-lecture-sections" class="section-category">
+                <!-- Lecture sections will be added here -->
+            </div>
+            <div id="edit-tutorial-sections" class="section-category">
+                <!-- Tutorial sections will be added here -->
+            </div>
+            <div id="edit-lab-sections" class="section-category">
+                <!-- Lab sections will be added here -->
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button type="button" id="add-Lecture">+ Lecture</button>
+            <button type="button" id="add-Tutorial">+ Tutorial</button>
+            <button type="button" id="add-Lab">+ Lab</button>
+        </div>
+        <div class="button-container">
+        <button type="submit" id="edit-subject">Save Changes</button>
+        </div>
+    </div>
+
+    <script src="static/js/script7.js"></script>
 </body>
 </html>
     

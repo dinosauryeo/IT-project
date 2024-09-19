@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify
 import os
 import pandas as pd
 import random
-import sqlite3  # Example using SQLite for database
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -40,9 +39,11 @@ if not os.path.exists(UPLOAD_FOLDER):
 def login_page():
     return render_template('login.html')
 
-@app.route('/home')
+@app.route('/home', methods=['GET'])
 def home_page():
     return render_template('home.html')
+
+@app.route('/favicon.ico')
 
 @app.route('/student')
 def student_page():
@@ -85,6 +86,49 @@ def login():
     
 
 
+
+@app.route('/editsubject', methods=['POST'])
+def editsubject():
+    try:
+        # Parse the incoming JSON data
+        subject_data = request.get_json()
+        year = subject_data.get('year')
+        semester = subject_data.get('semester')
+        subject_code = subject_data.get('subjectCode')
+        
+        # Construct the database name
+        year_semester = f"{year}_{semester}"
+        
+        # Connect to MongoDB
+        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+        db = client[year_semester]  # Connect to the specific year and semester database
+        collection = db['Subjects-Details']  # Collection where your subjects are stored
+
+        # Find and update the subject
+        result = collection.update_one(
+            {'subjectCode': subject_code},
+            {'$set': subject_data}
+        )
+
+        if result.matched_count == 0:
+            return jsonify({'status': 'error', 'message': 'Subject not found'}), 404
+        else:
+            return jsonify({'status': 'success', 'message': 'Subject updated successfully'}), 200
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to update subject'}), 500
+
+
+@app.route('/editsubject', methods=['GET'])
+def editsubject_page():
+    return render_template('EditSubjects.html')
+    #make sure when you click save you back to the previous page with memory for year and semester so people dont need to filled everything again
+
+
+
+
+
 @app.route('/createsubject', methods=['GET', 'POST'])
 def createsubject_page():
     if request.method == 'GET':
@@ -119,24 +163,73 @@ def createsubject_page():
         print(f"Error inserting subject: {e}")  # Log error message
         return jsonify({'status': 'error', 'message': 'Failed to create subject'}), 500
 
-    
+
+
+
 @app.route('/getsubjects', methods=['GET'])
 def get_subjects():
+    year_semester = request.args.get('year_semester')  # Get the year and semester in "2019_Semester1" format
+    print(f"Year and Semester received: {year_semester}")  # Debugging line to check the year_semester value
+    if not year_semester:
+        return jsonify({'status': 'error', 'message': 'Year and semester are required'}), 400
+
     try:
-        client = login()  # Connect to MongoDB
-        db = client['IT-project']
+        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+
+        db = client[year_semester]  # Connect to the specific year and semester database
         collection = db['Subjects-Details']  # Collection where your subjects are stored
 
-        # Fetch all subjects from the collection
-        subjects = list(collection.find({}, {'_id': 0, 'year': 1, 'semester': 1, 'campus': 1, 'coordinator': 1, 'subjectName': 1, 'subjectCode': 1, 'sections': 1}))
-        
-        # Debugging output to check the structure
-        print("Subjects fetched from MongoDB:", subjects)
+        # Fetch all subjects from the collection including coordinator and campus
+        subjects = list(collection.find({}, {'_id': 0, 'subjectName': 1, 'subjectCode': 1, 'coordinator': 1, 'campus': 1}))
+        print(f"Raw subjects fetched from MongoDB: {subjects}")  # Debugging output to see raw data from MongoDB
 
-        return jsonify(subjects), 200  # Return JSON data
+        # Combine fields for each subject
+        subject_list = [
+            {
+                'subjectString': f"{subject.get('subjectCode', 'N/A')} - {subject.get('subjectName', 'N/A')}",
+                'subjectCode': subject.get('subjectCode', 'N/A'),
+                'coordinator': subject.get('coordinator', 'N/A'),
+                'campus': subject.get('campus', 'N/A')
+            } 
+            for subject in subjects
+        ]
+
+        # Debugging output to check the structure
+        print("Processed subject list:", subject_list)
+
+        return jsonify(subject_list), 200  # Return JSON data
     except Exception as e:
         print(f"An error occurred: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to fetch subjects'}), 500
+
+
+
+@app.route('/getsubjectdetails', methods=['GET'])
+def get_subject_details():
+    subject_code = request.args.get('subject_code')
+    year_semester = request.args.get('year_semester')
+    
+    print(f"Received subject_code: {subject_code}")
+    print(f"Received year_semester: {year_semester}")
+    
+    if not subject_code or not year_semester:
+        return jsonify({'status': 'error', 'message': 'Subject code and year/semester are required'}), 400
+
+    try:
+        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+        db = client[year_semester]  # Connect to the specific year and semester database
+        collection = db['Subjects-Details']  # Collection where your subjects are stored
+        subject = collection.find_one({'subjectCode': subject_code}, {'_id': 0})
+        
+        print(f"Found subject: {subject}")  # Check if the subject is found
+        print(f"Received subject_code: {subject_code}")
+        if subject:
+            return jsonify(subject), 200
+        else:
+            return jsonify({'status': 'error', 'message': 'Subject not found'}), 404
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to fetch subject details'}), 500
 
 
 # 14/09 10:06 last modify
@@ -303,8 +396,6 @@ def relogin():
     else:
         return jsonify({"status": "fail","message": "password doesn't match"})
     
-# if __name__ == '__main__':
-#     app.run(debug=True)
 
 
 @app.route('/generate_timetable', methods=['POST'])

@@ -190,14 +190,20 @@ def access_fs(client):
     return fs
 
 #insert subject info to backend
-def insert_subject(subject_data,year, semester):
+def insert_subject(subject_data, year, semester):
     client = login()
-    db = client[str(year)+"_"+str(semester)]
+    db = client[str(year) + "_" + str(semester)]
+    
     try:
-        collection = db['Subjects-Details'] 
-        result = collection.insert_one(subject_data)
+        # Create the collection if it doesn't exist
+        if 'Subjects-Details' not in db.list_collection_names():
+            db.create_collection('Subjects-Details')
+        
+        collection = db['Subjects-Details']
+        result = collection.insert_one(subject_data)  # Insert the subject data
         print(f"Inserted document with ID: {result.inserted_id}")  # Log the inserted document ID
         return result.inserted_id  # Return the ID of the inserted document
+    
     except Exception as e:
         print(f"An error occurred while inserting data: {e}")  # Log any errors
         return None

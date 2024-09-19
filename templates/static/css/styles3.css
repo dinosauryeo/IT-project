@@ -1,0 +1,205 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    background-color: #ffffff;
+    color: white;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo img {
+    height: 80px;
+}
+
+.title {
+    color: #000000;
+    font-size: 24px;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.navbar {
+    background-color: #ffd0bf;
+    position: relative;
+    padding: 0px;
+    box-shadow: 0px 2px 5px rgba(255, 255, 255, 0.1);
+}
+
+.navbar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px; /* Height of the border */
+    background: linear-gradient(to right, rgb(236, 73, 19), rgb(175, 22, 175)); /* Gradient */
+}
+
+.navbar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.navbar li {
+    padding: 20px;
+    cursor: pointer;
+    background-color:#ffd0bf;
+    text-align: center;
+    margin-right: 0px;
+    width: 60px;
+}
+
+.navbar li.logout {
+    margin-left: auto; /* Pushes the "Logout" button to the right */
+}
+
+.navbar li:hover {
+    background-color: #f96c25;
+}
+
+
+.navbar li.active {
+    background-color: #f96c25; 
+}
+
+.content {
+    padding: 20px;
+    background-color: #fff;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+
+
+.container {
+    display: flex;
+    /* height: calc(100vh - 120px);   Adjust based on header and footer height */
+    gap: 20px;  /* Adds a gap between the bars */
+}
+
+.left-bar, .right-bar {
+    padding: 20px;
+    overflow-y: auto;  /* Enables scrolling */
+    border-radius: 15px;  /* Adds rounded corners */
+}
+
+.left-bar {
+    width: 35%;  /* Makes the left bar thinner */
+    background-color: #f0f0f0;
+    max-height: 100%;
+}
+
+.right-bar {
+    width: 65%;  /* Makes the right bar wider */
+    background-color: #f0f0f0;
+    max-height: 100%;
+}
+
+.subjects-text h3 {
+    text-align: center;
+    background: linear-gradient(to right, rgb(236, 73, 19), rgb(175, 22, 175));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 30px;
+    margin-top: 0px;
+    margin-bottom: 15px;
+}
+
+.calendar h3, .right-bar h3 {
+    margin-top: 10px;
+}
+
+.subject-list h3 {
+    margin: auto;
+}
+
+#subject-dropdown {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#enrolled-students, #lecture-tutorial-list {
+    list-style: none;
+    padding: 0;
+}
+
+#enrolled-students li, #lecture-tutorial-list li {
+    padding: 10px;
+    background-color: #f0f0f0;
+    margin-top: 5px;
+    border-radius: 5px;
+}
+
+
+/* Add placeholder color */
+select::placeholder, input::placeholder {
+    color: #888;
+}
+
+/* Styling for select and input fields */
+select {
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    margin-right: 8px; /* Space between elements */
+    margin-bottom: 8px;
+    margin-top: 0px;
+}
+
+.subject-item {
+    font-size: 14px bold; /* Smaller font size */
+    background-color: #f9d9cd;
+    color:#000000;
+    padding: 15px; /* Space inside the border */
+    margin: 8px 0; /* Space between items */
+    cursor: pointer; /* Indicate that it's clickable */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+}
+
+.subject-item:hover,
+.subject-item.active {
+    color: #ffffff;
+    background-color: #f96c25;
+    transform: scale(1.02);
+}
+
+span {
+    font-size: 15px;
+    color: #000000;
+    font-weight: bold;
+}
+
+#subject-code, #subject-title{
+    font-size: 20px;
+}
+
+
+.section-dropdown {
+    display: flex;
+    width: 100%; /* Make it the same width as the subject-item */
+    background-color: lightgrey;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.section-dropdown:focus {
+    background-color: white;
+}
