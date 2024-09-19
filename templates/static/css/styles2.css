@@ -356,3 +356,20 @@ select, input {
 }
 
 
+
+#edit-subject {
+    width: 120px; /* Adjust the width as needed */
+    padding: 10px; /* Adjust padding for desired height */
+    text-align: center; /* Center text within the button */
+    margin: 0; /* Reset any default margin */
+    float: right; /* Align to the right */
+    background-color: #f0f0f0; /* Button background color */
+    color: rgb(0, 0, 0); /* Text color */
+    border-radius: 5px; /* Rounded corners */
+    border-width: 1px;
+    border-color: #000000;
+}
+
+#edit-subject:hover {
+    background-color: #ccc; /* Darker background on hover */
+}

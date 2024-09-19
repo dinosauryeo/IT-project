@@ -14,6 +14,10 @@ function loadGeneratePage(){
 function addSubject() {
     window.location.href = '/createsubject';
 }
+// Function to handle logout
+function logout() {
+    window.location.href = '/logout';
+}
 
 
 function showPage(pageId) {
@@ -35,6 +39,53 @@ function showPage(pageId) {
 
 }
 
+
+//Hover event for Home link
+document.getElementById('home-link').addEventListener('click', function() {
+    showPage('home');
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Get all the navbar items
+    var navbarItems = document.querySelectorAll('.navbar li');
+
+    // Loop through each item
+    navbarItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            // Remove 'active' class from all items
+            navbarItems.forEach(function (el) {
+                el.classList.remove('active');
+            });
+            // Add 'active' class to the clicked item
+            this.classList.add('active');
+        });
+    });
+
+});
+
+
+// 14/09 10:21 modify
+// write send email to student 
+function SendEmailToStudents(){
+    fetch('/send_timetable', {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log("timetable(fake) sent");
+            alert("Timetable had been sent");
+        } 
+        else {
+            console.log("timetable failed to send");
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+    });
+}
 
 //Hover event for Home link
 document.getElementById('home-link').addEventListener('click', function() {

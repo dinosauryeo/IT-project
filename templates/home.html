@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIT Timetable</title>
-    <link rel="stylesheet" href="static/css/styles2.css">
+    <link rel="stylesheet" href="static/css/styles3.css">
 </head>
 <body>
     <div class="header">
@@ -33,17 +33,24 @@
                     <div class="subjects-text">
                         <h3>Subjects</h3>
                     </div>
-                    <select id="year-semester">
-                        <option value="2024S1">2024 - Semester 1</option>
-                        <option value="2024S2">2024 - Semester 2</option>
-                    </select>
+                    <!-- Main Selection Bar with "+" Button -->
+                    <div>
+                        <select id="year-semester" disabled>
+                            <option value="" disabled selected>Year Semester</option>
+                        </select>
+                        <button id="add-year-semester-btn">+</button>
+                    </div>
+                    
+                    <!-- Other content of the left-bar -->
                     <div class="subject-list">
                         <h3>Subjects</h3>
-                        <select id="subject-dropdown">
-                            <!-- Options will be populated dynamically -->
-                        </select>
+                        <div id="subject-container">
+                            <!-- Subject items will be appended here dynamically -->
+                        </div>
                         <button id="add-subject-btn" onclick="addSubject()">Add Subject</button>
                     </div>
+
+                    
                     <div class="calendar">
                         <h3>Calendar</h3>
                         <!-- Small calendar will be integrated here -->
@@ -51,17 +58,33 @@
                 </div>
         
                 <div class="right-bar">
-                    <h3>Subject Information</h3>
-                    <p>Code/Title: <span id="subject-code-title"></span></p>
-                    <p>Delivery Mode: <span id="delivery-mode"></span></p>
-                    <p>Lecture/Tutorial Times:</p>
-                    <ul id="lecture-tutorial-list">
-                        <!-- Lecture/Tutorial times will be listed here -->
-                    </ul>
-                    <h3>Enrolled Students</h3>
-                    <ul id="enrolled-students">
-                        <!-- Student info will be displayed here -->
-                    </ul>
+                    <!-- Section for Adding Year and Semester -->
+                    <div id="add-year-semester-container" class="add-year-semester-page" style="display:none;">
+                        <h3>Add Year and Semester</h3>
+                        <div id="year-semester-sections">
+                            <!-- Multiple year-semester sections will be added here -->
+                        </div>
+                        <button id="add-section-btn">+</button>
+                        <button id="save-year-semester-btn">Save All</button>
+                    </div>
+
+                    <!-- Existing Right Bar Content -->
+                    <div id="subject-info" style="display: none;">
+                        <p>
+                            <span id="subject-code"></span> - <span id="subject-title"></span>
+                        </p>
+                        <button id="edit-subject-btn">Edit Subject</button>
+                        <p>Subject Coordinator: <span id="subject-coordinator"></span></p>
+                        <p>Campus: <span id="campus"></span></p>
+
+                        <ul id="lecture-tutorial-list">
+                            <!-- Lecture/Tutorial times will be listed here -->
+                        </ul>
+                        <h3>Enrolled Students</h3>
+                        <ul id="enrolled-students">
+                            <!-- Student info will be displayed here -->
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

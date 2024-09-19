@@ -29,16 +29,28 @@
 
     <div class="content">
         <div id="upload" class="page active">
-            <h2>Upload Page</h2>
             <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
-                <!-- 修改2: 添加了 `name` 属性 -->
+                <!-- Dropdown for Year -->
+                <label for="yearSelect">Year:</label>
+                <select id="yearSelect" name="year" required>
+                    <!-- JavaScript will populate this -->
+                </select>
+                
+                <!-- Dropdown for Semester -->
+                <label for="semesterSelect">Semester:</label>
+                <select id="semesterSelect" name="semester" required>
+                    <option value="Semester1">Semester 1</option>
+                    <option value="Winter">Winter</option>
+                    <option value="Semester2">Semester 2</option>
+                    <option value="Summer">Summer</option>
+                </select>
+                
                 <input type="file" id="fileInput" name="file" accept=".csv, .xlsx" required>
                 <button type="submit">Upload</button>
             </form>
             <div id="uploadStatus"></div>
         </div>       
     </div>
-
-    <script src="static/js/script2.js"></script>
+    <script src="static/js/script5.js"></script>
 </body>
 </html>
