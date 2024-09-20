@@ -449,6 +449,136 @@ def get_subject_details():
 #             print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
 
 
+# ///////////////////////////////////////////////
+
+# import random
+
+# def check_time_conflict(assigned_times, day, from_time, to_time):
+#     """
+#     检查给定的时间段是否与已分配的时间段冲突。
+#     """
+#     for time_slot in assigned_times:
+#         if time_slot['day'] == day:
+#             # 如果在同一天，检查时间是否重叠
+#             if not (to_time <= time_slot['from'] or from_time >= time_slot['to']):
+#                 return True  # 发生冲突
+#     return False  # 无冲突
+
+
+# def generate_timetable_for_students():
+#     client = login()
+#     students_db = client['Students-Enrollment-Details-DataBase']
+#     students_collection = students_db['Students-Enrollment-Details-20240905_150108']
+
+#     subjects_db = client['IT-project']
+#     subjects_collection = subjects_db['Subjects-Details']
+
+#     error_messages = []  # 用于收集错误信息
+
+#     try:
+#         # 获取学生选课信息
+#         students_data = students_collection.find({})
+#         # 获取所有课程的详细信息
+#         subjects_data = list(subjects_collection.find({}))
+
+#         student_timetables = []
+
+#         for student in students_data:
+#             student_id = student.get('StudentID')
+#             personal_email = student.get('Personal Email')  # 读取个人邮箱
+
+#             for attempt in range(10):  # 最多尝试10次
+#                 enrolled_courses = []  # 记录该学生的时间表
+#                 assigned_times = []  # 记录已分配的时间段
+#                 conflict = False  # 是否发生冲突
+
+#                 # 遍历该学生选的所有课程
+#                 for course_id, status in student.items():
+#                     if isinstance(status, str) and status == 'ENRL':  # 如果课程状态是 "ENRL"
+#                         # 在课程详细信息中找到对应的课程
+#                         matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
+
+#                         if matching_subject:
+#                             subject_code = matching_subject['subjectCode']
+#                             sections = matching_subject.get('sections', {})
+
+#                             # 遍历课程的所有 section 类型（Lecture, Tutorial, Lab等）
+#                             for section_type, section_objects in sections.items():
+#                                 for section_object in section_objects:
+#                                     title = section_object.get('title')
+                                    
+#                                     # 随机打乱模块顺序，每次尝试时顺序不同
+#                                     modules = section_object.get('modules', [])
+#                                     random.shuffle(modules)  # 打乱模块的顺序，确保每次选择不同
+
+#                                     module_assigned = False  # 标识当前 section 是否分配成功
+
+#                                     # 尝试分配每一个时间模块
+#                                     for module in modules:
+#                                         day = module.get('day')
+#                                         from_time = module.get('from')
+#                                         to_time = module.get('to')
+
+#                                         # 检查是否与已分配的时间冲突
+#                                         if not check_time_conflict(assigned_times, day, from_time, to_time):
+#                                             # 如果没有冲突，分配该时间段
+#                                             assigned_times.append({
+#                                                 'day': day,
+#                                                 'from': from_time,
+#                                                 'to': to_time
+#                                             })
+#                                             enrolled_courses.append({
+#                                                 'SubjectCode': subject_code,
+#                                                 'SectionType': section_type,
+#                                                 'Title': title,
+#                                                 'Day': module.get('day'),
+#                                                 'From': module.get('from'),
+#                                                 'To': module.get('to'),
+#                                                 'Location': module.get('location'),
+#                                                 'Mode': module.get('mode')
+#                                             })
+#                                             module_assigned = True  # 成功分配
+#                                             break  # 成功后跳出 module 循环
+
+#                                     # 如果该 section 没有分配成功，标记冲突
+#                                     if not module_assigned:
+#                                         conflict = True
+#                                         # print("aaaaaaaaaaaaaa")
+#                                         break  # 跳出 section 循环
+
+#                                 # 如果发生冲突，提前结束该课程的处理
+#                                 if conflict:
+#                                     break
+
+#                             # 如果发生冲突，提前结束课程遍历
+#                             if conflict:
+#                                 break
+
+#                 # 如果所有课程都成功分配，则保存时间表
+#                 if not conflict:
+#                     student_timetables.append({
+#                         'StudentID': student_id,
+#                         'PersonalEmail': personal_email,  # 将个人邮箱添加到结果中
+#                         'Timetable': enrolled_courses
+#                     })
+#                     break  # 成功生成时间表，退出尝试循环
+#                 else:
+#                     attempt+1
+#                     # 每次冲突重新开始时，打印失败信息
+#                     # print(f"Attempt {attempt + 1} failed for student {student_id}")
+
+#                 # 如果10次尝试仍然失败
+#                 if attempt == 9:
+#                     error_message = f"Error: 学生 {student_id} 的课程无法安排无冲突的时间表"
+#                     error_messages.append(error_message)  # 收集错误信息
+        
+#         return student_timetables, error_messages  # 返回时间表和错误信息
+
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
+#         return None
+
+
 
 import random
 
@@ -517,15 +647,28 @@ def generate_timetable_for_students():
                                         day = module.get('day')
                                         from_time = module.get('from')
                                         to_time = module.get('to')
+                                        limit = module.get('limit', None)  # 获取人数限制，如果没有设置，默认为 None
+
+                                        # 获取当前模块的已分配人数
+                                        current_enrollment = module.get('current_enrollment', 0)
+
+                                        # 检查是否有limit并转换为int
+                                        if limit is not None:
+                                            limit = int(limit)  # 将limit从字符串转换为整数
+                                            
+                                            # 检查是否已达到人数限制
+                                            if current_enrollment >= limit:
+                                                continue  # 跳过该模块
 
                                         # 检查是否与已分配的时间冲突
                                         if not check_time_conflict(assigned_times, day, from_time, to_time):
-                                            # 如果没有冲突，分配该时间段
+                                            # 如果没有冲突，分配该时间段并更新人数
                                             assigned_times.append({
                                                 'day': day,
                                                 'from': from_time,
                                                 'to': to_time
                                             })
+
                                             enrolled_courses.append({
                                                 'SubjectCode': subject_code,
                                                 'SectionType': section_type,
@@ -536,13 +679,17 @@ def generate_timetable_for_students():
                                                 'Location': module.get('location'),
                                                 'Mode': module.get('mode')
                                             })
+
+                                            # 如果有 `limit`，更新模块的已分配人数
+                                            if limit is not None:
+                                                module['current_enrollment'] = current_enrollment + 1
+                                            
                                             module_assigned = True  # 成功分配
                                             break  # 成功后跳出 module 循环
 
                                     # 如果该 section 没有分配成功，标记冲突
                                     if not module_assigned:
                                         conflict = True
-                                        # print("aaaaaaaaaaaaaa")
                                         break  # 跳出 section 循环
 
                                 # 如果发生冲突，提前结束该课程的处理
@@ -561,10 +708,6 @@ def generate_timetable_for_students():
                         'Timetable': enrolled_courses
                     })
                     break  # 成功生成时间表，退出尝试循环
-                else:
-                    attempt+1
-                    # 每次冲突重新开始时，打印失败信息
-                    # print(f"Attempt {attempt + 1} failed for student {student_id}")
 
                 # 如果10次尝试仍然失败
                 if attempt == 9:
@@ -577,21 +720,21 @@ def generate_timetable_for_students():
         print(f"Error: {str(e)}")
         return None
 
-"""
-# 生成时间表
-timetables, error_messages = generate_timetable_for_students()
 
 
-# 输出生成的时间表
-if timetables:
-    for student_timetable in timetables:
-        print(f"StudentID: {student_timetable['StudentID']}, PersonalEmail: {student_timetable['PersonalEmail']}")
-        for course in student_timetable['Timetable']:
-            print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
-            print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
+# # 生成时间表
+# timetables, error_messages = generate_timetable_for_students()
 
-# 把错误信息传递到前端显示
-if error_messages:
-    for error in error_messages:
-        print(f"前端显示: {error}")
-"""
+
+# # 输出生成的时间表
+# if timetables:
+#     for student_timetable in timetables:
+#         print(f"StudentID: {student_timetable['StudentID']}, PersonalEmail: {student_timetable['PersonalEmail']}")
+#         for course in student_timetable['Timetable']:
+#             print(f"  Subject: {course['SubjectCode']}, Section: {course['SectionType']}, Title: {course['Title']}")
+#             print(f"    Day: {course['Day']}, From: {course['From']}, To: {course['To']}, Location: {course['Location']}, Mode: {course['Mode']}")
+
+# # 把错误信息传递到前端显示
+# if error_messages:
+#     for error in error_messages:
+#         print(f"前端显示: {error}")
