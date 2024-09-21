@@ -46,7 +46,7 @@ def home_page():
     if "logged_in" in session:
         return render_template('home.html')
     else:
-        return render_template('login.html')
+        return render_template('Login.html')
 
 @app.route('/favicon.ico')
 
@@ -55,14 +55,14 @@ def student_page():
     if "logged_in" in session:
         return render_template('student.html')
     else:
-        return render_template('login.html')
+        return render_template('Login.html')
 
 @app.route('/generate')
 def generate_page():
     if "logged_in" in session:
         return render_template('generate.html')
     else:
-        return render_template('login.html')
+        return render_template('Login.html')
 
 # Route to serve the reset password HTML file
 @app.route('/reset_page')
@@ -73,7 +73,7 @@ def reset_page():
 def logout_page():
     session.pop('logged_in', None)
     session.pop('username', None)
-    return render_template('login.html')
+    return render_template('Login.html')
 
 # Route to handle login requests
 @app.route('/login', methods=['POST'])
