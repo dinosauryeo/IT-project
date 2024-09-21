@@ -38,7 +38,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 # Route to serve the login HTML file
 @app.route('/')
 def login_page():
-    return render_template('login.html')
+    return render_template('Login.html')
 
 @app.route('/home', methods=['GET'])
 def home_page():
