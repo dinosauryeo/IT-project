@@ -99,7 +99,6 @@ def login():
     else:
         return jsonify({"status": "fail", "message": "Invalid username or password"})
     
-
 @app.route('/editsubject', methods=['POST'])
 def editsubject():
     try:
@@ -131,7 +130,6 @@ def editsubject():
     except Exception as e:
         print(f"An error occurred: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to update subject'}), 500
-
 
 @app.route('/editsubject', methods=['GET'])
 def editsubject_page():
@@ -235,7 +233,6 @@ def get_subject_details():
         print(f"An error occurred: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to fetch subject details'}), 500
 
-
 # 14/09 10:06 last modify
 # Route to handle file upload
 @app.route('/upload', methods=['GET', 'POST'])
@@ -315,7 +312,6 @@ def send_timetable():
         print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
     
-
 #to send email out to a list of email, using a dictionary structure where the key would be receiver email and the value would be a list where the first element
 #would be the email subject, second element would be the email body and possibiliy a third element which would be a excel file to send
 def send_email(email_list):
@@ -380,27 +376,20 @@ def relogin():
     #check all field exists
     if not email or not vericode or not resetpassword or not confirmpassword:
         return jsonify({"status": "fail","message": "please enter all field"})
-    print("all field exists")
     
     #check does the two password match up
     if resetpassword == confirmpassword:
-        print("two password match")
-        
         response = mongoDB.veri_vericode(email,vericode,resetpassword)
         #check does the vericode match up with any email in the database
         if response == 1:
-            print("reset successful")
             return jsonify({"status": 'success',"message": "success"})
         elif response == 2:
-            print("vericode doesn't match")
             return jsonify({"status": "fail","message": "vericode doesn't match"})
         elif response == 3:
-            print("vericode expired")
             return jsonify({"status": "fail","message": "vericode expired"})
     else:
         return jsonify({"status": "fail","message": "password doesn't match"})
     
-
 
 @app.route('/generate_timetable', methods=['POST'])
 def generate_timetable():
