@@ -172,9 +172,6 @@ def createsubject_page():
         print(f"Error inserting subject: {e}")  # Log error message
         return jsonify({'status': 'error', 'message': 'Failed to create subject'}), 500
 
-
-
-
 @app.route('/getsubjects', methods=['GET'])
 def get_subjects():
     year_semester = request.args.get('year_semester')  # Get the year and semester in "2019_Semester1" format
@@ -210,9 +207,7 @@ def get_subjects():
     except Exception as e:
         print(f"An error occurred: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to fetch subjects'}), 500
-
-
-
+    
 @app.route('/getsubjectdetails', methods=['GET'])
 def get_subject_details():
     subject_code = request.args.get('subject_code')
