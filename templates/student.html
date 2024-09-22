@@ -73,11 +73,12 @@
                     <p>Course Date: 13/03/2023 - 23/02/2025</p>
                 </div>
 
-                <div class="timetable">
-                    <table>
+                <!-- Timetable -->
+                <div class="timetable-container">
+                    <table class="timetable">
                         <thead>
                             <tr>
-                                <th></th>
+                                <th>Time</th>
                                 <th>Mon</th>
                                 <th>Tue</th>
                                 <th>Wed</th>
@@ -86,25 +87,37 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Example row: 8:00 AM -->
                             <tr>
                                 <td>8:00</td>
-                                <td class="lecture">MITS5003 Lecture</td>
+                                <td class="lecture">MITS5003<br>Lecture</td>
                                 <td></td>
-                                <td class="lecture">MITS5502 Lecture</td>
+                                <td class="lecture">MITS5502<br>Lecture</td>
                                 <td></td>
                                 <td></td>
                             </tr>
-                            <!-- Add more rows for the timetable -->
+                            <!-- Example row: 9:30 AM -->
+                            <tr>
+                                <td>9:30</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="tutorial">MITS5001<br>Tutorial</td>
+                            </tr>
+                            <!-- More rows here -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Export Buttons -->
-                <div class="export-buttons">
-                    <button onclick="exportSelected()">Export Selected</button>
-                    <button onclick="exportAll()">Export All</button>
-                </div>
-            </div>
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+        <button onclick="exportSelected()">Export Selected</button>
+        <button onclick="exportAll()">Export All</button>
+    </div>
+</div>
+
+
         </div>
     </div>
 
