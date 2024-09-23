@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session 
 import os
 import pandas as pd
 import random
@@ -22,6 +22,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, 
             static_folder=os.path.join(current_dir, 'templates','static'), 
             template_folder=os.path.join(current_dir, 'templates'))
+app.secret_key="secret_key"
 
 print("Static Folder:", app.static_folder)
 print("Template Folder:", app.template_folder)
@@ -41,17 +42,27 @@ def login_page():
 
 @app.route('/home', methods=['GET'])
 def home_page():
-    return render_template('home.html')
+    print(session)
+    if "logged_in" in session:
+        return render_template('home.html')
+    else:
+        return render_template('login.html')
 
 @app.route('/favicon.ico')
 
 @app.route('/student')
 def student_page():
-    return render_template('student.html')
+    if "logged_in" in session:
+        return render_template('student.html')
+    else:
+        return render_template('login.html')
 
 @app.route('/generate')
 def generate_page():
-    return render_template('generate.html')
+    if "logged_in" in session:
+        return render_template('generate.html')
+    else:
+        return render_template('login.html')
 
 # Route to serve the reset password HTML file
 @app.route('/reset_page')
@@ -60,6 +71,8 @@ def reset_page():
 
 @app.route('/logout')
 def logout_page():
+    session.pop('logged_in', None)
+    session.pop('username', None)
     return render_template('login.html')
 
 # Route to handle login requests
@@ -80,12 +93,12 @@ def login():
     
     if success:
         # In a real application, you'd set a session or token here
+        session['logged_in'] = True
+        session['username'] = username_or_email
         return jsonify({"status": "success", "message": "Login successful"})
     else:
         return jsonify({"status": "fail", "message": "Invalid username or password"})
     
-
-
 
 @app.route('/editsubject', methods=['POST'])
 def editsubject():
@@ -124,10 +137,6 @@ def editsubject():
 def editsubject_page():
     return render_template('EditSubjects.html')
     #make sure when you click save you back to the previous page with memory for year and semester so people dont need to filled everything again
-
-
-
-
 
 @app.route('/createsubject', methods=['GET', 'POST'])
 def createsubject_page():
