@@ -112,6 +112,45 @@ body {
     overflow-y: auto;  /* Enables scrolling */
     border-radius: 15px;  /* Adds rounded corners */
 }
+/* Left bar container */
+.left-bar {
+    width: 30%;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scrollable student list */
+.student-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    height: 300px; /* Adjust the height based on your layout needs */
+    border: 1px solid #ddd;
+    margin-top: 10px;
+    padding: 5px;
+}
+
+/* Student items */
+.student-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.student-item.collision {
+    background-color: #f2dede;
+}
+
+/* Adjust the filter options to sit below the scrollable list */
+.filter-options {
+    margin-top: 10px;
+}
 
 .left-bar {
     width: 35%;  /* Makes the left bar thinner */
@@ -124,6 +163,71 @@ body {
     background-color: #f0f0f0;
     max-height: 100%;
 }
+/* Right bar container */
+.right-bar {
+    width: 65%;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+/* Student details */
+.student-details {
+    margin-bottom: 20px;
+}
+
+/* Timetable container */
+.timetable-container {
+    margin-top: 20px;
+}
+
+/* Timetable table */
+.timetable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.timetable th, .timetable td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.timetable th {
+    background-color: #f0f0f0;
+}
+
+.timetable td {
+    height: 50px;
+}
+
+.lecture {
+    background-color: #e8f4f8;
+    font-weight: bold;
+}
+
+.tutorial {
+    background-color: #f4f8e8;
+    font-weight: bold;
+}
+
+.export-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.export-buttons button {
+    padding: 10px;
+    margin-left: 10px;
+    background-color: #f0c040;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
 
 .subjects-text h3 {
     text-align: center;

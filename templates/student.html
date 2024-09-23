@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>VIT Timetable</title>
+    <title>VIT Timetable - Student</title>
     <link rel="stylesheet" href="static/css/styles2.css">
 </head>
 <body>
+    <!-- Header Section -->
     <div class="header">
         <div class="logo">
             <a href="javascript:void(0);" onclick="loadHomePage()">
@@ -15,11 +15,16 @@
             </a>
         </div>
         <div class="title">Timetable</div>
+        <div class="user-info">
+            <span>Meichen</span>
+            <span>chenmei@teacher.vit.edu.au</span>
+        </div>
     </div>
 
+    <!-- Navigation Bar -->
     <div class="navbar">
         <ul>
-            <li id="home-link" onclick="loadHomePage()">Home</li>
+            <li id="home-link" onclick="loadHomePage()">My subject</li>
             <li onclick="loadStudentPage()" class="active">Student</li>
             <li onclick="loadUploadPage()">Upload</li>
             <li onclick="loadGeneratePage()">Generate</li>
@@ -27,11 +32,92 @@
         </ul>
     </div>
 
+    <!-- Main Content Area -->
     <div class="content">
-        <div id="student" class="page active">
-            <h2>Student Page</h2>
-            <p>This is the Student page.</p>
-            <button type="button" class="send-button" onclick="SendEmailToStudents()">Send Email</button>
+        <div class="container">
+            <!-- Left Bar (Student List & Filters) -->
+            <div class="left-bar">
+                <h3>2024 Semester 2</h3>
+                <input type="text" id="search-student" placeholder="Search">
+                <button id="filter-button">Filter</button>
+
+                <!-- Scrollable container for the student list -->
+                <div class="student-list">
+                    <div class="student-item collision">
+                        <span>Saurabh Mehta</span> <span class="id">1234</span>
+                    </div>
+                    <div class="student-item">
+                        <span>Kalindi</span> <span class="id">5678</span>
+                    </div>
+                    <div class="student-item">
+                        <span>Vo</span> <span class="id">9101</span>
+                    </div>
+                    <div class="student-item">
+                        <span>Robert</span> <span class="id">1213</span>
+                    </div>
+                    <!-- More students here -->
+                </div>
+
+                <!-- Filter options -->
+                <div class="filter-options">
+                    <p>A-Z | Enrol Time | Unprocessed | ID</p>
+                </div>
+            </div>
+
+
+            <!-- Right Bar (Student Details & Timetable) -->
+            <div class="right-bar">
+                <div class="student-details">
+                    <h3>Saurabh Mehta</h3>
+                    <p>Master of Information Technology and Systems</p>
+                    <p>Course Date: 13/03/2023 - 23/02/2025</p>
+                </div>
+
+                <!-- Timetable -->
+                <div class="timetable-container">
+                    <table class="timetable">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Mon</th>
+                                <th>Tue</th>
+                                <th>Wed</th>
+                                <th>Thu</th>
+                                <th>Fri</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Example row: 8:00 AM -->
+                            <tr>
+                                <td>8:00</td>
+                                <td class="lecture">MITS5003<br>Lecture</td>
+                                <td></td>
+                                <td class="lecture">MITS5502<br>Lecture</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <!-- Example row: 9:30 AM -->
+                            <tr>
+                                <td>9:30</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="tutorial">MITS5001<br>Tutorial</td>
+                            </tr>
+                            <!-- More rows here -->
+                        </tbody>
+                    </table>
+                </div>
+
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+        <button onclick="exportSelected()">Export Selected</button>
+        <button onclick="exportAll()">Export All</button>
+    </div>
+</div>
+
+
         </div>
     </div>
 

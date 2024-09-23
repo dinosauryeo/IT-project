@@ -413,7 +413,7 @@ def generate_timetable():
         client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
         timetable_db = client['Students-Timetable']
         timetable_collection = timetable_db['Timetables']
-        # 调用生成timetable的函数
+        # Call the function that generates the timetable
         timetables, error_messages = generate_timetable_for_students()
 
         if not timetables:
@@ -422,7 +422,7 @@ def generate_timetable():
         if error_messages:
             return jsonify({'status': 'error', 'message': error_messages})
 
-        # 存储到 MongoDB 的 Timetables 集合
+        # Stored in MongoDB's Timetables collection
         for timetable in timetables:
             timetable_collection.insert_one(timetable)
 
