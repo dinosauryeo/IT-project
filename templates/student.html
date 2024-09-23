@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIT Timetable - Student</title>
+    <link rel="stylesheet" href="static/css/styles2.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <div class="logo">
+            <a href="javascript:void(0);" onclick="loadHomePage()">
+                <img src="static/images/logoitself.png" alt="VIT Logo">
+            </a>
+        </div>
+        <div class="title">Timetable</div>
+        <div class="user-info">
+            <span>Meichen</span>
+            <span>chenmei@teacher.vit.edu.au</span>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <ul>
+            <li id="home-link" onclick="loadHomePage()">My subject</li>
+            <li onclick="loadStudentPage()" class="active">Student</li>
+            <li onclick="loadUploadPage()">Upload</li>
+            <li onclick="loadGeneratePage()">Generate</li>
+            <li id="logout-link" onclick="logout()" class="logout">Logout</li>
+        </ul>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        <div class="container">
+            <!-- Left Bar (Student List & Filters) -->
+            <div class="left-bar">
+                <h3>2024 Semester 2</h3>
+                <input type="text" id="search-student" placeholder="Search">
+
+                <!-- Filter with dropdown options -->
+                <div class="filter-container">
+                    <button id="filter-button">Filter</button>
+                    <div class="dropdown-content">
+                        <select id="filter-options">
+                            <option value="az">A-Z</option>
+                            <option value="enrol-time">Enrol Time</option>
+                            <option value="unprocessed">Unprocessed</option>
+                            <option value="id">ID</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Scrollable container for the student list -->
+                <div class="student-list">
+                    <div class="student-item collision">
+                        <span>Saurabh Mehta</span> <span class="id">1234</span>
+                    </div>
+                    <div class="student-item">
+                        <span>Kalindi</span> <span class="id">5678</span>
+                    </div>
+                    <div class="student-item">
+                        <span>Vo</span> <span class="id">9101</span>
+                    </div>
+                    <div class="student-item">
+                        <span>Robert</span> <span class="id">1213</span>
+                    </div>
+                    <!-- More students here -->
+                </div>
+            </div>
+
+            <!-- Right Bar (Student Details & Timetable) -->
+            <div class="right-bar">
+                <div class="student-details">
+                    <h3>Saurabh Mehta</h3>
+                    <p>Master of Information Technology and Systems</p>
+                    <p>Course Date: 13/03/2023 - 23/02/2025</p>
+                </div>
+
+                <!-- Timetable -->
+                <div class="timetable-container">
+                    <table class="timetable">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Mon</th>
+                                <th>Tue</th>
+                                <th>Wed</th>
+                                <th>Thu</th>
+                                <th>Fri</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Example rows extending until 6:00 PM -->
+                            <tr>
+                                <td>8:00</td>
+                                <td class="lecture">MITS5003<br>Lecture</td>
+                                <td></td>
+                                <td class="lecture">MITS5502<br>Lecture</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>9:30</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="tutorial">MITS5001<br>Tutorial</td>
+                            </tr>
+                            <tr>
+                                <td>11:00</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="lecture">MITS6002<br>Lecture</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>12:30</td>
+                                <td class="lecture">MITS7004<br>Lecture</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>14:00</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="lecture">MITS8005<br>Lecture</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>15:30</td>
+                                <td></td>
+                                <td></td>
+                                <td class="tutorial">MITS9006<br>Tutorial</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>17:00</td>
+                                <td class="lecture">MITS1001<br>Lecture</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>18:00</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="lecture">MITS2002<br>Lecture</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="export-buttons">
+                    <button onclick="exportSelected()">Export Selected</button>
+                    <button onclick="exportAll()">Export All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/script2.js"></script>
+</body>
+</html>
