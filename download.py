@@ -28,10 +28,13 @@ HORIZONTAL = 'center'
 LEFT = 'left'
 TAHOMA = 'Tahoma'
 
+
+'''change the time format'''
 def format_time(time_str):
     return time_str.lstrip('0') if time_str.startswith('0') else time_str
 
 
+'''calculate class time interval'''
 def calculate_duration(start_time, end_time):
     """calculate time interval for lecture/lab/tutorial"""
     time_format = "%H:%M" 
@@ -49,8 +52,11 @@ def calculate_duration(start_time, end_time):
         return (str(hours)+'h'+ str(minutes) +'min').replace('.0', '')
 
 
+
+'''translate csv timetable into excel
+with well structured format and meet target output design '''
 def csv_to_excel(csv_file, excel_file):
-    # 创建边框样式
+    # create border feature
     thin_border = Border(left=Side(style='thin'),
                      right=Side(style='thin'),
                      top=Side(style='thin'),
@@ -68,9 +74,9 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.column_dimensions['E'].width = COLUMN_E
         worksheet.column_dimensions['F'].width = COLUMN_E
         worksheet.column_dimensions['G'].width = COLUMN_G
-        # 插入图片
-        img = Image('templates/static/images/uniphoto.png')  # 使用Image类加载图片
-        worksheet.add_image(img, 'A1')  # 将图片插入到'A1'单元格
+        # image add
+        img = Image('templates/static/images/uniphoto.png')  
+        worksheet.add_image(img, 'A1')
         
         # import title
         worksheet.append(['']*1 + ["Victorian Institute of Technology Pty Ltd"])
@@ -111,9 +117,9 @@ def csv_to_excel(csv_file, excel_file):
                 merged_cell.font = Font(color = RED, bold = True, name=TAHOMA, size = SIZE)    
 
             
-        # 设置样式: 灰色背景 & 加粗黑色字体
-        header_fill = PatternFill(start_color= GREY , end_color = GREY, fill_type="solid")  # 灰色填充
-        header_font = Font(bold=True, color = BLACK, name = TAHOMA)  # 加粗黑色字体
+        # grey back ground and font
+        header_fill = PatternFill(start_color= GREY , end_color = GREY, fill_type="solid")  
+        header_font = Font(bold=True, color = BLACK, name = TAHOMA)
         columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
         for column in columns:
             cell = worksheet[f'{column}9']
@@ -136,7 +142,10 @@ def csv_to_excel(csv_file, excel_file):
 
 
 
-
+'''
+The method is to download each student timetable file from MongoDB 
+transfer into csv with student id _timetable
+'''
 def download():
     client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
     db = client['Students-Timetable']  
