@@ -2,8 +2,31 @@ import csv
 from pymongo import MongoClient
 from datetime import datetime
 import pandas as pd
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Font
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.drawing.image import Image
+from openpyxl.styles import Border, Side
+
+
+TIME = 60
+COLUMN_C = 87.67
+COLUMN_B = 29.67
+COLUMN_A = 11.5
+COLUMN_D = 25.67
+COLUMN_E = 14.33
+COLUMN_G = 24.5
+ROW = 9
+TITLE = 3
+HEADER = 5
+SIZE = 11
+ROW_HEIGHT = 30
+BLUE = "0000FF"
+BLACK = "000000"
+RED = "FF0000"
+GREY = "C0C0C0"
+LIGHT_BLUE = "E0FFFF"
+HORIZONTAL = 'center'
+LEFT = 'left'
+TAHOMA = 'Tahoma'
 
 def format_time(time_str):
     return time_str.lstrip('0') if time_str.startswith('0') else time_str
@@ -17,9 +40,9 @@ def calculate_duration(start_time, end_time):
 
     # calculate duriation
     duration = end - start
-    total_minutes = duration.total_seconds() // 60
-    hours = total_minutes // 60
-    minutes = total_minutes % 60
+    total_minutes = duration.total_seconds() // TIME
+    hours = total_minutes // TIME
+    minutes = total_minutes % TIME
     if minutes == 0:
         return (str(hours)+'h').replace('.0', '')
     else:
@@ -27,18 +50,28 @@ def calculate_duration(start_time, end_time):
 
 
 def csv_to_excel(csv_file, excel_file):
+    # 创建边框样式
+    thin_border = Border(left=Side(style='thin'),
+                     right=Side(style='thin'),
+                     top=Side(style='thin'),
+                     bottom=Side(style='thin'))
+    tahoma_font = Font(name = TAHOMA, size = SIZE)
     # create a Excelwritter 
     with pd.ExcelWriter(excel_file, engine = 'openpyxl') as writer:
         workbook = writer.book
         #create new work sheet
         worksheet = workbook.create_sheet(title = 'Timetable') 
-        worksheet.column_dimensions['C'].width = 87.67
-        worksheet.column_dimensions['B'].width = 29.67
-        worksheet.column_dimensions['A'].width = 11.5
-        worksheet.column_dimensions['D'].width = 25.67
-        worksheet.column_dimensions['E'].width = 14.33
-        worksheet.column_dimensions['E'].width = 14.33
-        worksheet.column_dimensions['G'].width = 24.5
+        worksheet.column_dimensions['A'].width = COLUMN_A
+        worksheet.column_dimensions['B'].width = COLUMN_B
+        worksheet.column_dimensions['C'].width = COLUMN_C
+        worksheet.column_dimensions['D'].width = COLUMN_D
+        worksheet.column_dimensions['E'].width = COLUMN_E
+        worksheet.column_dimensions['F'].width = COLUMN_E
+        worksheet.column_dimensions['G'].width = COLUMN_G
+        # 插入图片
+        img = Image('templates/static/images/uniphoto.png')  # 使用Image类加载图片
+        worksheet.add_image(img, 'A1')  # 将图片插入到'A1'单元格
+        
         # import title
         worksheet.append(['']*1 + ["Victorian Institute of Technology Pty Ltd"])
         worksheet.append(['']*1 + ["ABN: 41 085 128 525 RTO No: 20829 TEQSA ID: PRV14007 CRICOS Provider Code: 02044E"])
@@ -61,21 +94,44 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.merge_cells('A5:G5')
         worksheet.merge_cells('A6:G6')
         worksheet.merge_cells('A7:G7')
-        for row in range(1, 8):
-            if row < 3:
+        for row in range(1, ROW - 1):
+            if row < TITLE:
                 merged_cell = worksheet[f'B{row}']
-                merged_cell.alignment = Alignment(horizontal='center', vertical='center')
+                merged_cell.alignment = Alignment(horizontal=HORIZONTAL, vertical=HORIZONTAL)
                 #blue color
-                merged_cell.font = Font(color="0000FF", bold = True) 
-            elif 2 < row < 5:
+                merged_cell.font = Font(color = BLUE, bold = True, name=TAHOMA,size = SIZE) 
+            elif TITLE <= row < HEADER:
                 merged_cell = worksheet[f'B{row}']
-                merged_cell.alignment = Alignment(horizontal='center', vertical='center')
-                merged_cell.font = Font(color="000000", bold = True) 
+                merged_cell.alignment = Alignment(horizontal= HORIZONTAL, vertical= HORIZONTAL)
+                merged_cell.font = Font(color = BLACK, bold = True, name=TAHOMA,size = SIZE) 
             else:
                 #red color
                 merged_cell = worksheet[f'A{row}']
-                merged_cell.alignment = Alignment(horizontal='left', vertical='center')
-                merged_cell.font = Font(color="FF0000", bold = True) 
+                merged_cell.alignment = Alignment(horizontal = LEFT, vertical = HORIZONTAL)
+                merged_cell.font = Font(color = RED, bold = True, name=TAHOMA, size = SIZE)    
+
+            
+        # 设置样式: 灰色背景 & 加粗黑色字体
+        header_fill = PatternFill(start_color= GREY , end_color = GREY, fill_type="solid")  # 灰色填充
+        header_font = Font(bold=True, color = BLACK, name = TAHOMA)  # 加粗黑色字体
+        columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        for column in columns:
+            cell = worksheet[f'{column}9']
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal = HORIZONTAL, vertical = HORIZONTAL)
+            cell.border = thin_border
+        #set data background into light blue color
+        for row_index, row in data.iterrows():
+            for col_index in range(len(row)):
+                cell = worksheet.cell(row = row_index + ROW + 1, column = col_index + 1)
+                cell.fill = PatternFill(start_color = LIGHT_BLUE, end_color = LIGHT_BLUE, fill_type = "solid")
+                cell.font = tahoma_font
+                cell.border = thin_border
+        worksheet.row_dimensions[ROW].height = ROW_HEIGHT
+        worksheet['D9'].alignment = Alignment(horizontal = HORIZONTAL, vertical = HORIZONTAL, wrap_text = True)
+
+
 
 
 
@@ -95,17 +151,16 @@ def download():
         # create each students' csv
         filename = f'{student_id}_timetable.csv'
         with open(filename, 'w', newline = '', encoding = 'utf-8') as file:
-            fieldnames = ['Day', 'Time', 'Unit', 'Classroom Level/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
+            fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
             writer = csv.DictWriter(file, fieldnames = fieldnames)
             writer.writeheader()
-
             if sorted_timetables:
                 for timetable in sorted_timetables:
                     row = {
-                        'Day': timetable.get('Day', ''),
+                        'Day': timetable.get('Day', '').capitalize(),
                         'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + "(L + T)",
                         'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + '(' + calculate_duration(format_time(timetable.get('From', '')) , format_time(timetable.get('To', ''))) +' ' +timetable.get('Title', '') + ')',
-                        'Classroom Level/ Room/ Venue': timetable.get('Location', ''),
+                        'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
                         'Lecturer': timetable.get('Lecturer', ''),
                         'Tutor': timetable.get('Tutor', ''),
                         'Delivery Mode': timetable.get('Mode', '')
