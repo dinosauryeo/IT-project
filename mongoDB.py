@@ -369,7 +369,7 @@ def generate_timetable_for_students():
 
                                     module_assigned = False  # Indicates whether the current section is allocated successfully.
 
-                                    # 尝试分配每一个时间模块
+                                    # Try to allocate each time module
                                     for module in modules:
                                         day = module.get('day')
                                         from_time = module.get('from')
