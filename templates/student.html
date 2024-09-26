@@ -39,7 +39,19 @@
             <div class="left-bar">
                 <h3>2024 Semester 2</h3>
                 <input type="text" id="search-student" placeholder="Search">
-                <button id="filter-button">Filter</button>
+
+                <!-- Filter with dropdown options -->
+                <div class="filter-container">
+                    <button id="filter-button">Filter</button>
+                    <div class="dropdown-content">
+                        <select id="filter-options">
+                            <option value="az">A-Z</option>
+                            <option value="enrol-time">Enrol Time</option>
+                            <option value="unprocessed">Unprocessed</option>
+                            <option value="id">ID</option>
+                        </select>
+                    </div>
+                </div>
 
                 <!-- Scrollable container for the student list -->
                 <div class="student-list">
@@ -57,13 +69,7 @@
                     </div>
                     <!-- More students here -->
                 </div>
-
-                <!-- Filter options -->
-                <div class="filter-options">
-                    <p>A-Z | Enrol Time | Unprocessed | ID</p>
-                </div>
             </div>
-
 
             <!-- Right Bar (Student Details & Timetable) -->
             <div class="right-bar">
@@ -87,7 +93,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Example row: 8:00 AM -->
+                            <!-- Example rows extending until 6:00 PM -->
                             <tr>
                                 <td>8:00</td>
                                 <td class="lecture">MITS5003<br>Lecture</td>
@@ -96,7 +102,6 @@
                                 <td></td>
                                 <td></td>
                             </tr>
-                            <!-- Example row: 9:30 AM -->
                             <tr>
                                 <td>9:30</td>
                                 <td></td>
@@ -105,19 +110,64 @@
                                 <td></td>
                                 <td class="tutorial">MITS5001<br>Tutorial</td>
                             </tr>
-                            <!-- More rows here -->
+                            <tr>
+                                <td>11:00</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="lecture">MITS6002<br>Lecture</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>12:30</td>
+                                <td class="lecture">MITS7004<br>Lecture</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>14:00</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="lecture">MITS8005<br>Lecture</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>15:30</td>
+                                <td></td>
+                                <td></td>
+                                <td class="tutorial">MITS9006<br>Tutorial</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>17:00</td>
+                                <td class="lecture">MITS1001<br>Lecture</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>18:00</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="lecture">MITS2002<br>Lecture</td>
+                                <td></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
-    <!-- Export Buttons -->
-    <div class="export-buttons">
-        <button onclick="exportSelected()">Export Selected</button>
-        <button onclick="exportAll()">Export All</button>
-    </div>
-</div>
-
-
+                <!-- Export Buttons -->
+                <div class="export-buttons">
+                    <button onclick="exportSelected()">Export Selected</button>
+                    <button onclick="exportAll()">Export All</button>
+                </div>
+            </div>
         </div>
     </div>
 
