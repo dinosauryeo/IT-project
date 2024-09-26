@@ -131,32 +131,67 @@ def create_new_collection(client, file_path):
     return collection
     """
     
-def create_new_collection(year, semester):
-    client = login()
-    db = client[str(year)+"_"+str(semester)]
+# def create_new_collection(year, semester):
+#     client = login()
+#     db = client[str(year)+"_"+str(semester)]
     
-    # Generate a unique collection name based on the year, semester, and current time
-    collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+#     # Generate a unique collection name based on the year, semester, and current time
+#     collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     
-    # Create a new collection
+#     # Create a new collection
+#     collection = db[collection_name]
+    
+#     return collection
+
+# def insert_student_data(file_path, year, semester):
+#     client = login()
+#     print(str(year)+"_"+str(semester))
+#     db = client[str(year)+"_"+str(semester)]
+#     collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+#     collection = db[collection_name]
+
+#     # Read CSV file
+#     df = pd.read_csv(file_path)
+    
+#     # Insert each row into MongoDB
+#     for index, row in df.iterrows():
+#         student_data = row.to_dict()  # Convert each row to a dictionary
+#         collection.insert_one(student_data)  # Insert into MongoDB collection
+
+
+# Function to create a new collection based on the year, semester, and current time
+def create_new_collection(db, course_name, campus):
+    # Generate a unique collection name based on Course Name, Campus, and current timestamp
+    collection_name = f"Students-Enrollment-Details-{course_name}-{campus}-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    # Create a new collection in the specified database
     collection = db[collection_name]
     
     return collection
 
+# Function to insert student data from a CSV file into MongoDB
 def insert_student_data(file_path, year, semester):
     client = login()
-    print(str(year)+"_"+str(semester))
-    db = client[str(year)+"_"+str(semester)]
-    collection_name = f"Students-Enrollment-Details-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    collection = db[collection_name]
-
+    
+    # Select the database based on the year and semester
+    db = client[str(year) + "_" + str(semester)]
+    
     # Read CSV file
     df = pd.read_csv(file_path)
     
-    # Insert each row into MongoDB
+    # Assuming 'Course Name' and 'Campus' are columns in your CSV
+    course_name = df['Course Name'].iloc[0]  # Get the first course name
+    campus = df['Campus'].iloc[0]  # Get the first campus name
+
+    # Create a new collection with the course name, campus, and current timestamp
+    collection = create_new_collection(db, course_name, campus)
+
+    # Insert each row from the CSV into the collection
     for index, row in df.iterrows():
         student_data = row.to_dict()  # Convert each row to a dictionary
         collection.insert_one(student_data)  # Insert into MongoDB collection
+
+    print(f"Data inserted into collection: {collection.name}")
         
 def access_fs(client):
     db = client['Students-Enrollment-Details-DataBase']
