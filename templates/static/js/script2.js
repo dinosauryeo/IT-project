@@ -1,11 +1,9 @@
-
 function loadHomePage(){
     window.location.href = '/home';
 }
 function loadStudentPage(){
-    console.log("load student page");
+    alert("load student page");
     window.location.href = '/student';
-    fetchStudents();
 }
 function loadUploadPage(){
     window.location.href = '/upload';
