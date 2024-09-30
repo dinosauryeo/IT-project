@@ -14,7 +14,7 @@ from mongoDB import insert_student_data
 from mongoDB import generate_timetable_for_students
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-
+import csv
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -431,12 +431,20 @@ def generate_timetable():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
-    
 
 
+
+
+
+
+
+
+
+'''
+return student id and student name and send it to front end
+'''
 @app.route('/students_timetable', methods=['GET'])
 def get_students():
-    print("get student trigger")
     client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
     db = client['2019_Semester1']  # 选择数据库
     collection = db['Students-Enrollment-Details-20240915_190953']  # 选择集合
@@ -456,8 +464,28 @@ def get_students():
         
         return jsonify(student_list), 200  # 返回JSON响应，状态码200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500  # 返回错误信息，状态码500
+        return jsonify({'error': str(e)}), 500  # 返回错误信息，状态码500'''
+    
 
+
+
+'''
+return the specific student timetable detail in jason searched by student's id
+stucture is like :
+[{'Day': 'Monday', 'Time': '8:00 to 9:00(L + T)', 'Unit': 'MITS5003-(1h Lecture 1)', 'Classroom\nLevel/ Room/ Venue': '1234', 'Lecturer': '', 'Tutor': '', 'Delivery Mode': 'oncampus'}, 
+...
+]
+'''
+DOWNLOAD_FOLDER = 'student_timetable'
+@app.route('/get_csv/<filename>', methods=['POST'])
+def get_timetable(filename):
+    file_path = os.path.join(DOWNLOAD_FOLDER, str(filename)+"_timetable.csv")
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found."}), 404
+    with open(file_path, mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        data = [row for row in reader]
+    return jsonify(data)
 if __name__ == '__main__':
     app.run(debug=True)
     

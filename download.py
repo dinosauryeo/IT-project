@@ -5,6 +5,7 @@ import pandas as pd
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Border, Side
+import os
 
 
 TIME = 60
@@ -151,7 +152,9 @@ def download():
     db = client['Students-Timetable']  
     collection = db['Timetables']
     days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-
+    # create timetable file in local path
+    download_dir = 'student_timetable'
+    os.makedirs(download_dir, exist_ok=True)
     # extract each student timetable
     for document in collection.find():
         student_id = document['StudentID']
@@ -159,7 +162,8 @@ def download():
         sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day']), datetime.strptime(x['From'], '%H:%M')))
         # create each students' csv
         filename = f'{student_id}_timetable.csv'
-        with open(filename, 'w', newline = '', encoding = 'utf-8') as file:
+        file_path = os.path.join(download_dir, filename) 
+        with open(file_path, 'w', newline = '', encoding = 'utf-8') as file:
             fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
             writer = csv.DictWriter(file, fieldnames = fieldnames)
             writer.writeheader()
@@ -177,6 +181,7 @@ def download():
                     writer.writerow(row)
             else:
                 print(f"No timetable found for StudentID: {student_id}")
-        csv_to_excel(filename, f'{student_id}_timetable.xlsx')
+        excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
+        csv_to_excel(file_path, excel_path)
 if __name__ == "__main__":
     download()

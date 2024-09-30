@@ -1,12 +1,12 @@
 Day,Time,Unit,"Classroom
 Level/ Room/ Venue",Lecturer,Tutor,Delivery Mode
 Monday,4:00 to 5:00(L + T),MITS5003-(1h Lecture 1),1234,,,oncampus
-Monday,7:30 to 8:30(L + T),MITS5501-(1h Lecture 1),2222,,,oncampus
+Monday,7:30 to 8:30(L + T),MITS5501-(1h Lecture 1),3233,,,oncampus
+Tuesday,12:00 to 13:00(L + T),MITS5501-(1h Tutorial 1),4321,,,oncampus
 Wednesday,7:00 to 8:00(L + T),MITS5501-(1h Lecture 2),6666,,,oncampus
-Wednesday,12:00 to 13:00(L + T),MITS5502-(1h Lab 1),321,,,oncampus
+Wednesday,14:00 to 15:00(L + T),MITS5502-(1h Lab 1),4321,,,oncampus
 Wednesday,20:00 to 21:00(L + T),MITS5502-(1h Lecture 1),432,,,online
 Thursday,10:00 to 11:00(L + T),MITS5501-(1h Lab 1),4321,,,oncampus
-Thursday,12:00 to 13:00(L + T),MITS5501-(1h Tutorial 1),4321,,,oncampus
 Thursday,15:00 to 16:30(L + T),MITS6002-(1h30min Lecture 1),1234,,,oncampus
 Friday,8:00 to 9:00(L + T),MITS5003-(1h Tutorial 1),65432,,,oncampus
 Friday,15:00 to 16:30(L + T),MITS6002-(1h30min Lecture 2),1234,,,oncampus
