@@ -433,6 +433,31 @@ def generate_timetable():
         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
     
 
+
+@app.route('/students_timetable', methods=['GET'])
+def get_students():
+    print("get student trigger")
+    client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+    db = client['2019_Semester1']  # 选择数据库
+    collection = db['Students-Enrollment-Details-20240915_190953']  # 选择集合
+    try:
+        # 查询MongoDB中的所有学生数据
+        students = collection.find()
+        # 将查询结果转换为JSON格式
+        student_list = []
+        for student in students:
+            print(student['Student Name'])
+            student_list.append({
+                'name': student.get('Student Name', 'No Name'),
+                'id': student.get('StudentID', 'No ID'),
+                'course': student.get('Course Name', 'No Course Name'),
+                'campus': student.get('Campus', 'No Campus')
+            })
+        
+        return jsonify(student_list), 200  # 返回JSON响应，状态码200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500  # 返回错误信息，状态码500
+
 if __name__ == '__main__':
     app.run(debug=True)
     

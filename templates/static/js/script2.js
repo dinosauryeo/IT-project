@@ -3,7 +3,9 @@ function loadHomePage(){
     window.location.href = '/home';
 }
 function loadStudentPage(){
+    console.log("load student page");
     window.location.href = '/student';
+    fetchStudents();
 }
 function loadUploadPage(){
     window.location.href = '/upload';
@@ -28,6 +30,7 @@ function showPage(pageId) {
 
     // Show the selected page
     document.getElementById(pageId).style.display = 'block';
+
     // Update active class for navbar items
     document.querySelectorAll('.navbar li').forEach(item => {
         item.classList.remove('active');
@@ -239,3 +242,31 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+
+
+function fetchStudents() {
+    fetch('/students_timetable')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // 在控制台输出学生数据
+            renderStudents(data); // 调用渲染函数，将数据渲染到页面上
+        })
+        .catch(error => {
+            console.error('Error fetching students:', error);
+        });
+}
+function renderStudents(students) {
+    const studentContainer = document.getElementById('studentContainer'); // 假设你的容器 ID 是 studentContainer
+    studentContainer.innerHTML = ''; // 清空容器
+
+    students.forEach(student => {
+        const studentDiv = document.createElement('div');
+        studentDiv.textContent = `${student.id}: ${student.name}`; // 使用正确的属性
+        studentContainer.appendChild(studentDiv);
+    });
+}
