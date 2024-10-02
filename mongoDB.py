@@ -356,131 +356,523 @@ def check_time_conflict(assigned_times, day, from_time, to_time):
     return False  # no Conflict
 
 
-def generate_timetable_for_students():
-    client = login()
-    students_db = client['Students-Enrollment-Details-DataBase']
-    students_collection = students_db['Students-Enrollment-Details-20240905_150108']
+# def generate_timetable_for_students():
+#     client = login()
+#     students_db = client['Students-Enrollment-Details-DataBase']
+#     students_collection = students_db['Students-Enrollment-Details-20240905_150108']
 
-    subjects_db = client['IT-project']
-    subjects_collection = subjects_db['Subjects-Details']
+#     subjects_db = client['IT-project']
+#     subjects_collection = subjects_db['Subjects-Details']
 
-    error_messages = []  # Used to collect error information
+#     error_messages = []  # Used to collect error information
+
+#     try:
+#         # Get student course selection information
+#         students_data = students_collection.find({})
+#         # Get detailed information on all courses
+#         subjects_data = list(subjects_collection.find({}))
+
+#         student_timetables = []
+
+#         for student in students_data:
+#             student_id = student.get('StudentID')
+#             personal_email = student.get('Personal Email')  # Read personal mailbox
+
+#             for attempt in range(10):  # Maximum 10 attempts
+#                 enrolled_courses = []  # Record the student's timetable
+#                 assigned_times = []  # Record the allocated time periods
+#                 conflict = False  # Is there a conflict?
+
+#                 # Traverse all the courses selected by the student
+#                 for course_id, status in student.items():
+#                     if isinstance(status, str) and status == 'ENRL':  # If the course status is "ENRL"
+#                         # Find the corresponding course in the course details
+#                         matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
+
+#                         if matching_subject:
+#                             subject_code = matching_subject['subjectCode']
+#                             sections = matching_subject.get('sections', {})
+
+#                             # Traverse all section types of the course (Lecture, Tutorial, Lab, etc.)
+#                             for section_type, section_objects in sections.items():
+#                                 for section_object in section_objects:
+#                                     title = section_object.get('title')
+                                    
+#                                     # Randomly shuffle the order of modules so that the order is different each time you try
+#                                     modules = section_object.get('modules', [])
+#                                     random.shuffle(modules)  # Shuffle the order of the modules to ensure that each selection is different
+
+#                                     module_assigned = False  # Indicates whether the current section is allocated successfully.
+
+#                                     # Try to allocate each time module
+#                                     for module in modules:
+#                                         day = module.get('day')
+#                                         from_time = module.get('from')
+#                                         to_time = module.get('to')
+#                                         limit = module.get('limit', None)  # Get the number of people limit, if not set, the default is None
+
+#                                         # Get the number of people assigned to the current module
+#                                         current_enrollment = module.get('current_enrollment', 0)
+
+#                                         # Check if there is a limit and convert it to int
+#                                         if limit is not None:
+#                                             limit = int(limit)  # Convert limit from a string to an integer
+                                            
+#                                             # Check if the limit has been reached
+#                                             if current_enrollment >= limit:
+#                                                 continue  # Skip this module
+
+#                                         # Check if there is a conflict with the allocated time
+#                                         if not check_time_conflict(assigned_times, day, from_time, to_time):
+#                                             # If there is no conflict, assign the time slot and update the number of people
+#                                             assigned_times.append({
+#                                                 'day': day,
+#                                                 'from': from_time,
+#                                                 'to': to_time
+#                                             })
+
+#                                             enrolled_courses.append({
+#                                                 'SubjectCode': subject_code,
+#                                                 'SectionType': section_type,
+#                                                 'Title': title,
+#                                                 'Day': module.get('day'),
+#                                                 'From': module.get('from'),
+#                                                 'To': module.get('to'),
+#                                                 'Location': module.get('location'),
+#                                                 'Mode': module.get('mode')
+#                                             })
+
+#                                             # If `limit` is given, update the number of allocated users for the module
+#                                             if limit is not None:
+#                                                 module['current_enrollment'] = current_enrollment + 1
+                                            
+#                                             module_assigned = True  # Successful allocation
+#                                             break  # After success, jump out of the module loop
+
+#                                     # If the section is not allocated successfully, mark the conflict
+#                                     if not module_assigned:
+#                                         conflict = True
+#                                         break  # Break out of section loop
+
+#                                 # If a conflict occurs, end the course early
+#                                 if conflict:
+#                                     break
+
+#                             # If a conflict occurs, end the course traversal early
+#                             if conflict:
+#                                 break
+
+#                 # If all courses are assigned successfully, save the timetable
+#                 if not conflict:
+#                     student_timetables.append({
+#                         'StudentID': student_id,
+#                         'PersonalEmail': personal_email,  # Add personal email addresses to the results
+#                         'Timetable': enrolled_courses
+#                     })
+#                     break  # Successfully generated schedule, exiting the try loop
+
+#                 # If you still fail after 10 attempts
+#                 if attempt == 9:
+#                     error_message = f"Error: Student {student_id} Courses cannot be scheduled without conflicts"
+#                     error_messages.append(error_message)  # Collecting error information
+        
+#         return student_timetables, error_messages  # Return timeline and error messages
+
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
+#         return None
+
+# def generate_timetable_for_students(database_name):
+#     client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+    
+#     # Use the dynamically passed database name for subjects and students
+#     students_db = client[database_name]
+    
+#     # Find collections that start with 'Students-Enrollment-Details-'
+#     student_collections = [coll for coll in students_db.list_collection_names() if coll.startswith('Students-Enrollment-Details-')]
+    
+#     subjects_collection = students_db['Subjects-Details']
+
+#     error_messages = []
+#     student_timetables = []
+
+#     try:
+#         # Iterate through all student enrollment collections
+#         for student_collection_name in student_collections:
+#             students_collection = students_db[student_collection_name]
+#             students_data = students_collection.find({})
+
+#             # Get course details from 'Subjects-Details'
+#             subjects_data = list(subjects_collection.find({}))
+
+#             for student in students_data:
+#                 student_id = student.get('StudentID')
+#                 personal_email = student.get('Personal Email')
+
+#                 for attempt in range(10):
+#                     enrolled_courses = []
+#                     assigned_times = []
+#                     conflict = False
+
+#                     for course_id, status in student.items():
+#                         if isinstance(status, str) and status == 'ENRL':
+#                             matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
+
+#                             if matching_subject:
+#                                 subject_code = matching_subject['subjectCode']
+#                                 sections = matching_subject.get('sections', {})
+
+#                                 for section_type, section_objects in sections.items():
+#                                     for section_object in section_objects:
+#                                         title = section_object.get('title')
+#                                         modules = section_object.get('modules', [])
+#                                         random.shuffle(modules)
+
+#                                         module_assigned = False
+#                                         for module in modules:
+#                                             day = module.get('day')
+#                                             from_time = module.get('from')
+#                                             to_time = module.get('to')
+#                                             limit = module.get('limit', None)
+
+#                                             current_enrollment = module.get('current_enrollment', 0)
+#                                             if limit is not None:
+#                                                 limit = int(limit)  # Convert limit from a string to an integer
+#                                                 # Check if the limit has been reached
+#                                                 if current_enrollment >= limit:
+#                                                     continue  # Skip this module
+
+#                                             # if limit is not None and current_enrollment >= limit:
+#                                             #     continue
+
+#                                             if not check_time_conflict(assigned_times, day, from_time, to_time):
+#                                                 assigned_times.append({
+#                                                     'day': day,
+#                                                     'from': from_time,
+#                                                     'to': to_time
+#                                                 })
+
+#                                                 enrolled_courses.append({
+#                                                     'SubjectCode': subject_code,
+#                                                     'SectionType': section_type,
+#                                                     'Title': title,
+#                                                     'Day': day,
+#                                                     'From': from_time,
+#                                                     'To': to_time,
+#                                                     'Location': module.get('location'),
+#                                                     'Mode': module.get('mode')
+#                                                 })
+
+#                                                 if limit is not None:
+#                                                     module['current_enrollment'] = current_enrollment + 1
+
+#                                                 module_assigned = True
+#                                                 break
+
+#                                         if not module_assigned:
+#                                             conflict = True
+#                                             break
+
+#                                     if conflict:
+#                                         break
+
+#                             if conflict:
+#                                 break
+
+#                     if not conflict:
+#                         student_timetables.append({
+#                             'StudentID': student_id,
+#                             'PersonalEmail': personal_email,
+#                             'Timetable': enrolled_courses
+#                         })
+#                         break
+
+#                     if attempt == 9:
+#                         error_message = f"Error: Student {student_id} Courses cannot be scheduled without conflicts"
+#                         error_messages.append(error_message)
+
+#         return student_timetables, error_messages
+
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
+#         return None
+
+
+
+
+
+
+
+
+
+# def generate_timetable_for_students(database_name):
+#     client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+    
+#     # Use the dynamically passed database name for subjects and students
+#     students_db = client[database_name]
+    
+#     # Find collections that start with 'Students-Enrollment-Details-'
+#     student_collections = [coll for coll in students_db.list_collection_names() if coll.startswith('Students-Enrollment-Details-')]
+    
+#     subjects_collection = students_db['Subjects-Details']
+#     error_messages = []
+#     student_timetables = []
+
+#     try:
+#         # Iterate through all student enrollment collections
+#         for student_collection_name in student_collections:
+#             students_collection = students_db[student_collection_name]
+#             students_data = students_collection.find({})
+
+#             # Extract course name and campus name from the collection name
+#             parts = student_collection_name.split('-')
+#             if len(parts) >= 4:
+#                 course_name = parts[3]  # Assuming course name is the 3rd part
+#                 campus_name = parts[4]  # Assuming campus name is the 4th part
+#             else:
+#                 course_name = 'UnknownCourse'
+#                 campus_name = 'UnknownCampus'
+
+#             # Get course details from 'Subjects-Details'
+#             subjects_data = list(subjects_collection.find({}))
+
+#             for student in students_data:
+#                 student_id = student.get('StudentID')
+#                 personal_email = student.get('Personal Email')
+
+#                 for attempt in range(10):  # Attempt to generate a timetable up to 10 times
+#                     enrolled_courses = []
+#                     assigned_times = []
+#                     conflict = False
+
+#                     for course_id, status in student.items():
+#                         if isinstance(status, str) and status == 'ENRL':
+#                             matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
+
+#                             if matching_subject:
+#                                 subject_code = matching_subject['subjectCode']
+#                                 sections = matching_subject.get('sections', {})
+
+#                                 for section_type, section_objects in sections.items():
+#                                     for section_object in section_objects:
+#                                         title = section_object.get('title')
+#                                         modules = section_object.get('modules', [])
+#                                         random.shuffle(modules)
+
+#                                         module_assigned = False
+#                                         for module in modules:
+#                                             day = module.get('day')
+#                                             from_time = module.get('from')
+#                                             to_time = module.get('to')
+#                                             limit = module.get('limit', None)
+
+#                                             current_enrollment = module.get('current_enrollment', 0)
+#                                             if limit is not None:
+#                                                 limit = int(limit)
+#                                                 if current_enrollment >= limit:
+#                                                     continue  # Skip this module if the limit is reached
+
+#                                             if not check_time_conflict(assigned_times, day, from_time, to_time):
+#                                                 assigned_times.append({
+#                                                     'day': day,
+#                                                     'from': from_time,
+#                                                     'to': to_time
+#                                                 })
+
+#                                                 enrolled_courses.append({
+#                                                     'SubjectCode': subject_code,
+#                                                     'SectionType': section_type,
+#                                                     'Title': title,
+#                                                     'Day': day,
+#                                                     'From': from_time,
+#                                                     'To': to_time,
+#                                                     'Location': module.get('location'),
+#                                                     'Mode': module.get('mode')
+#                                                 })
+
+#                                                 if limit is not None:
+#                                                     module['current_enrollment'] = current_enrollment + 1
+
+#                                                 module_assigned = True
+#                                                 break
+
+#                                         if not module_assigned:
+#                                             conflict = True
+#                                             break
+
+#                                     if conflict:
+#                                         break
+
+#                             if conflict:
+#                                 break
+
+#                     if not conflict:
+#                         student_timetables.append({
+#                             'StudentID': student_id,
+#                             'PersonalEmail': personal_email,
+#                             'Timetable': enrolled_courses
+#                         })
+#                         break
+
+#                     if attempt == 9:
+#                         error_message = f"Error: Student {student_id} Courses cannot be scheduled without conflicts"
+#                         error_messages.append(error_message)
+
+#             # After generating timetables for students in this collection, save them to a new collection
+#             new_collection_name = f"Timetable-{course_name}-{campus_name}"
+#             timetable_collection = students_db[new_collection_name]
+
+#             # Insert each timetable into the new collection
+#             for timetable in student_timetables:
+#                 timetable_collection.insert_one(timetable)
+
+#         return student_timetables, error_messages
+
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
+#         return None, [f"An error occurred: {str(e)}"]
+
+
+
+def generate_timetable_for_students(database_name):
+    client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+    
+    # Use the dynamically passed database name for subjects and students
+    students_db = client[database_name]
+    
+    # Find collections that start with 'Students-Enrollment-Details-'
+    student_collections = [coll for coll in students_db.list_collection_names() if coll.startswith('Students-Enrollment-Details-')]
+    
+    subjects_collection = students_db['Subjects-Details']
+    error_messages = []
 
     try:
-        # Get student course selection information
-        students_data = students_collection.find({})
-        # Get detailed information on all courses
-        subjects_data = list(subjects_collection.find({}))
+        # Iterate through all student enrollment collections
+        for student_collection_name in student_collections:
+            students_collection = students_db[student_collection_name]
+            students_data = students_collection.find({})
 
-        student_timetables = []
+            # Extract course name and campus name from the collection name
+            parts = student_collection_name.split('-')
+            if len(parts) >= 4:
+                course_name = parts[3]  # Assuming course name is the 3rd part
+                campus_name = parts[4]  # Assuming campus name is the 4th part
+            else:
+                course_name = 'UnknownCourse'
+                campus_name = 'UnknownCampus'
 
-        for student in students_data:
-            student_id = student.get('StudentID')
-            personal_email = student.get('Personal Email')  # Read personal mailbox
+            # Get course details from 'Subjects-Details'
+            subjects_data = list(subjects_collection.find({}))
+            
+            # **Reset the student_timetables list for each collection**
+            student_timetables = []  # Move this line here to reset for each student collection
 
-            for attempt in range(10):  # Maximum 10 attempts
-                enrolled_courses = []  # Record the student's timetable
-                assigned_times = []  # Record the allocated time periods
-                conflict = False  # Is there a conflict?
+            for student in students_data:
+                student_id = student.get('StudentID')
+                personal_email = student.get('Personal Email')
 
-                # Traverse all the courses selected by the student
-                for course_id, status in student.items():
-                    if isinstance(status, str) and status == 'ENRL':  # If the course status is "ENRL"
-                        # Find the corresponding course in the course details
-                        matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
+                for attempt in range(10):  # Attempt to generate a timetable up to 10 times
+                    enrolled_courses = []
+                    assigned_times = []
+                    conflict = False
 
-                        if matching_subject:
-                            subject_code = matching_subject['subjectCode']
-                            sections = matching_subject.get('sections', {})
+                    for course_id, status in student.items():
+                        if isinstance(status, str) and status == 'ENRL':
+                            matching_subject = next((sub for sub in subjects_data if sub['subjectCode'] == course_id), None)
 
-                            # Traverse all section types of the course (Lecture, Tutorial, Lab, etc.)
-                            for section_type, section_objects in sections.items():
-                                for section_object in section_objects:
-                                    title = section_object.get('title')
-                                    
-                                    # Randomly shuffle the order of modules so that the order is different each time you try
-                                    modules = section_object.get('modules', [])
-                                    random.shuffle(modules)  # Shuffle the order of the modules to ensure that each selection is different
+                            if matching_subject:
+                                subject_code = matching_subject['subjectCode']
+                                sections = matching_subject.get('sections', {})
 
-                                    module_assigned = False  # Indicates whether the current section is allocated successfully.
+                                for section_type, section_objects in sections.items():
+                                    for section_object in section_objects:
+                                        title = section_object.get('title')
+                                        modules = section_object.get('modules', [])
+                                        random.shuffle(modules)
 
-                                    # Try to allocate each time module
-                                    for module in modules:
-                                        day = module.get('day')
-                                        from_time = module.get('from')
-                                        to_time = module.get('to')
-                                        limit = module.get('limit', None)  # Get the number of people limit, if not set, the default is None
+                                        module_assigned = False
+                                        for module in modules:
+                                            day = module.get('day')
+                                            from_time = module.get('from')
+                                            to_time = module.get('to')
+                                            limit = module.get('limit', None)
 
-                                        # Get the number of people assigned to the current module
-                                        current_enrollment = module.get('current_enrollment', 0)
-
-                                        # Check if there is a limit and convert it to int
-                                        if limit is not None:
-                                            limit = int(limit)  # Convert limit from a string to an integer
-                                            
-                                            # Check if the limit has been reached
-                                            if current_enrollment >= limit:
-                                                continue  # Skip this module
-
-                                        # Check if there is a conflict with the allocated time
-                                        if not check_time_conflict(assigned_times, day, from_time, to_time):
-                                            # If there is no conflict, assign the time slot and update the number of people
-                                            assigned_times.append({
-                                                'day': day,
-                                                'from': from_time,
-                                                'to': to_time
-                                            })
-
-                                            enrolled_courses.append({
-                                                'SubjectCode': subject_code,
-                                                'SectionType': section_type,
-                                                'Title': title,
-                                                'Day': module.get('day'),
-                                                'From': module.get('from'),
-                                                'To': module.get('to'),
-                                                'Location': module.get('location'),
-                                                'Mode': module.get('mode')
-                                            })
-
-                                            # If `limit` is given, update the number of allocated users for the module
+                                            current_enrollment = module.get('current_enrollment', 0)
                                             if limit is not None:
-                                                module['current_enrollment'] = current_enrollment + 1
-                                            
-                                            module_assigned = True  # Successful allocation
-                                            break  # After success, jump out of the module loop
+                                                limit = int(limit)
+                                                if current_enrollment >= limit:
+                                                    continue  # Skip this module if the limit is reached
 
-                                    # If the section is not allocated successfully, mark the conflict
-                                    if not module_assigned:
-                                        conflict = True
-                                        break  # Break out of section loop
+                                            if not check_time_conflict(assigned_times, day, from_time, to_time):
+                                                assigned_times.append({
+                                                    'day': day,
+                                                    'from': from_time,
+                                                    'to': to_time
+                                                })
 
-                                # If a conflict occurs, end the course early
-                                if conflict:
-                                    break
+                                                enrolled_courses.append({
+                                                    'SubjectCode': subject_code,
+                                                    'SectionType': section_type,
+                                                    'Title': title,
+                                                    'Day': day,
+                                                    'From': from_time,
+                                                    'To': to_time,
+                                                    'Location': module.get('location'),
+                                                    'Mode': module.get('mode')
+                                                })
 
-                            # If a conflict occurs, end the course traversal early
+                                                if limit is not None:
+                                                    module['current_enrollment'] = current_enrollment + 1
+
+                                                module_assigned = True
+                                                break
+
+                                        if not module_assigned:
+                                            conflict = True
+                                            break
+
+                                    if conflict:
+                                        break
+
                             if conflict:
                                 break
 
-                # If all courses are assigned successfully, save the timetable
-                if not conflict:
-                    student_timetables.append({
-                        'StudentID': student_id,
-                        'PersonalEmail': personal_email,  # Add personal email addresses to the results
-                        'Timetable': enrolled_courses
-                    })
-                    break  # Successfully generated schedule, exiting the try loop
+                    if not conflict:
+                        student_timetables.append({
+                            'StudentID': student_id,
+                            'PersonalEmail': personal_email,
+                            'Timetable': enrolled_courses
+                        })
+                        break
 
-                # If you still fail after 10 attempts
-                if attempt == 9:
-                    error_message = f"Error: Student {student_id} Courses cannot be scheduled without conflicts"
-                    error_messages.append(error_message)  # Collecting error information
-        
-        return student_timetables, error_messages  # Return timeline and error messages
+                    if attempt == 9:
+                        error_message = f"Error: Student {student_id} Courses cannot be scheduled without conflicts"
+                        error_messages.append(error_message)
+
+            # After generating timetables for students in this collection, save them to a new collection
+            new_collection_name = f"Timetable-{course_name}-{campus_name}"
+            timetable_collection = students_db[new_collection_name]
+
+            # Insert each timetable into the new collection
+            for timetable in student_timetables:
+                timetable_collection.insert_one(timetable)
+
+        return student_timetables, error_messages
 
     except Exception as e:
         print(f"Error: {str(e)}")
-        return None
+        return None, [f"An error occurred: {str(e)}"]
+
+
+
+
+
+
+
+
+
+
+
 
 
 

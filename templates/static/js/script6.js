@@ -18,7 +18,6 @@ function logout() {
     window.location.href = '/logout';
 }
 
-
 function showPage(pageId) {
     // Hide all pages
     document.querySelectorAll('.page').forEach(page => {
@@ -35,9 +34,7 @@ function showPage(pageId) {
     if (activeItem) {
         activeItem.classList.add('active');
     }
-
 }
-
 
 //Hover event for Home link
 document.getElementById('home-link').addEventListener('click', function() {
@@ -60,15 +57,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Dynamic Year dropdown population
+    const yearSelect = document.getElementById('yearSelect');
+    const currentYear = new Date().getFullYear();
+
+    for (let i = 0; i < 5; i++) {  // Example: add 5 years ahead
+        let option = document.createElement('option');
+        option.value = currentYear + i;
+        option.text = currentYear + i;
+        yearSelect.appendChild(option);
+    }
 });
 
 function generateTimetable() {
+    // 获取选中的年份和学期
+    const year = document.getElementById('yearSelect').value;
+    const semester = document.getElementById('semesterSelect').value;
+
+    // 将Year和Semester数据发送到后端
     fetch('/generate_timetable', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({})  // 不需要额外数据
+        body: JSON.stringify({ year: year, semester: semester })  // 传递year和semester数据
     })
     .then(response => {
         if (!response.ok) {

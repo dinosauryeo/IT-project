@@ -407,24 +407,98 @@ def relogin():
     
 
 
+# @app.route('/generate_timetable', methods=['POST'])
+# def generate_timetable():
+#     try:
+#         client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+#         timetable_db = client['Students-Timetable']
+#         timetable_collection = timetable_db['Timetables']
+#         # Call the function that generates the timetable
+#         timetables, error_messages = generate_timetable_for_students()
+
+#         if not timetables:
+#             return jsonify({'status': 'error', 'message': 'Failed to generate timetable'})
+        
+#         if error_messages:
+#             return jsonify({'status': 'error', 'message': error_messages})
+
+#         # Stored in MongoDB's Timetables collection
+#         for timetable in timetables:
+#             timetable_collection.insert_one(timetable)
+
+#         return jsonify({'status': 'success', 'message': 'Timetable generated and saved successfully!'})
+
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
+#         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
+
+# @app.route('/generate_timetable', methods=['POST'])
+# def generate_timetable():
+#     try:
+#         # Get year and semester from the request body
+#         data = request.get_json()
+#         year = data.get('year')
+#         semester = data.get('semester')
+        
+#         if not year or not semester:
+#             return jsonify({'status': 'error', 'message': 'Year and semester are required'})
+
+#         # Dynamically select the database based on year and semester
+#         database_name = f"{year}_{semester}"
+        
+#         client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+#         timetable_db = client[database_name]
+#         timetable_collection = timetable_db['Timetables']
+
+#         # Call the function that generates the timetable
+#         timetables, error_messages = generate_timetable_for_students(database_name)
+
+#         if not timetables:
+#             return jsonify({'status': 'error', 'message': 'Failed to generate timetable'})
+        
+#         if error_messages:
+#             return jsonify({'status': 'error', 'message': error_messages})
+
+#         # Store the generated timetables in the dynamically selected database
+#         for timetable in timetables:
+#             course_name = timetable.get('CourseName', 'UnknownCourse')
+#             campus_name = timetable.get('Campus', 'UnknownCampus')
+#             file_name = f"Timetable-{course_name}-{campus_name}.json"
+            
+#             # Log the file name or save it as part of the database entry if needed
+#             print(f"Generated file name: {file_name}")
+            
+#             # Insert the timetable into the MongoDB collection
+#             timetable_collection.insert_one(timetable)
+
+#         return jsonify({'status': 'success', 'message': 'Timetable generated and saved successfully!'})
+
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
+#         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
 @app.route('/generate_timetable', methods=['POST'])
 def generate_timetable():
     try:
-        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
-        timetable_db = client['Students-Timetable']
-        timetable_collection = timetable_db['Timetables']
-        # Call the function that generates the timetable
-        timetables, error_messages = generate_timetable_for_students()
+        # 从请求体中获取年份和学期
+        data = request.get_json()
+        year = data.get('year')
+        semester = data.get('semester')
+
+        # 验证年份和学期是否提供
+        if not year or not semester:
+            return jsonify({'status': 'error', 'message': 'Year and semester are required'})
+
+        # 动态选择基于年份和学期的数据库
+        database_name = f"{year}_{semester}"
+
+        # 调用生成时间表的函数
+        timetables, error_messages = generate_timetable_for_students(database_name)
 
         if not timetables:
             return jsonify({'status': 'error', 'message': 'Failed to generate timetable'})
-        
+
         if error_messages:
             return jsonify({'status': 'error', 'message': error_messages})
-
-        # Stored in MongoDB's Timetables collection
-        for timetable in timetables:
-            timetable_collection.insert_one(timetable)
 
         return jsonify({'status': 'success', 'message': 'Timetable generated and saved successfully!'})
 
@@ -432,6 +506,8 @@ def generate_timetable():
         print(f"Error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
 
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 
