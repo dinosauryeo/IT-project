@@ -258,13 +258,31 @@ function fetchStudents() {
             console.error('Error fetching students:', error);
         });
 }
+
 function renderStudents(students) {
-    const studentContainer = document.getElementById('studentContainer'); // 假设你的容器 ID 是 studentContainer
+    const studentContainer = document.getElementById('studentContainer'); 
     studentContainer.innerHTML = ''; // 清空容器
 
     students.forEach(student => {
+        // 创建学生条目容器
         const studentDiv = document.createElement('div');
-        studentDiv.textContent = `${student.id}: ${student.name}`; // 使用正确的属性
+        studentDiv.classList.add('student-entry'); // 可选：添加类名用于样式
+
+        // 创建显示学生信息的元素
+        const studentInfo = document.createElement('p');
+        studentInfo.textContent = `${student.id}: ${student.name}`; // 使用正确的属性
+
+        // 为学生条目容器添加点击事件监听器
+        studentDiv.addEventListener('click', () => {
+            console.log(`Student ID: ${student.id}, Name: ${student.name}`);
+            // 在这里添加你希望每个学生被点击后执行的逻辑
+            alert(`Clicked on: ${student.name}`); // 例如弹出提示
+        });
+
+        // 将学生信息添加到学生条目容器中
+        studentDiv.appendChild(studentInfo);
+
+        // 将学生条目容器添加到主容器中
         studentContainer.appendChild(studentDiv);
     });
 }
