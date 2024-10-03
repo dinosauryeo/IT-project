@@ -6,6 +6,7 @@
     
     <title>VIT Timetable</title>
     <link rel="stylesheet" href="static/css/styles2.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <div class="header">
@@ -15,7 +16,26 @@
             </a>
         </div>
         <div class="title">Timetable</div>
+        <div class="hamburger-menu">
+            <i class="fas fa-bars" onclick="toggleMenu()"></i>
+        </div>
     </div>
+
+    <div id="sideMenu" class="side-menu">
+        <div class="close-btn" onclick="toggleMenu()">
+            <i class="fas fa-times"></i>
+        </div>
+        <ul>
+            <li onclick="loadHomePage()">Home</li>
+            <li onclick="loadStudentPage()">Student</li>
+            <li onclick="loadUploadPage()">Upload</li>
+            <li onclick="loadGeneratePage()">Generate</li>
+            <li onclick="loadLocationPage()">Add Location</li>
+            <li onclick="logout()">Logout</li>
+        </ul>
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
 
     <div class="navbar">
         <ul>

@@ -17,6 +17,38 @@ function addSubject() {
 function logout() {
     window.location.href = '/logout';
 }
+function loadLocationPage() {
+    window.location.href = '/location';
+}
+
+function toggleMenu() {
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('overlay');
+    
+    if (sideMenu.classList.contains('active')) {
+        sideMenu.classList.remove('active');
+        overlay.style.display = 'none';
+    } else {
+        sideMenu.classList.add('active');
+        overlay.style.display = 'block';
+    }
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(event) {
+    const sideMenu = document.getElementById('sideMenu');
+    const hamburgerMenu = document.querySelector('.hamburger-menu');
+    
+    if (!sideMenu.contains(event.target) && !hamburgerMenu.contains(event.target)) {
+        sideMenu.classList.remove('active');
+        document.getElementById('overlay').style.display = 'none';
+    }
+});
+
+// Prevent clicks inside the menu from closing it
+document.getElementById('sideMenu').addEventListener('click', function(event) {
+    event.stopPropagation();
+});
 
 function showPage(pageId) {
     // Hide all pages

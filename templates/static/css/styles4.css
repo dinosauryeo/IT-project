@@ -24,6 +24,21 @@ body {
     flex-grow: 1;
 }
 
+/* .profile {
+    text-align: right;
+    display: flex;
+    align-items: center;
+}
+
+.profile span {
+    margin-right: 10px;
+}
+
+.profile-pic {
+    height: 40px;
+    border-radius: 50%;
+} */
+
 .navbar {
     background-color: #ffd0bf;
     position: relative;
@@ -86,122 +101,121 @@ body {
 
 
 
-.container {
-    display: flex;
-    /* height: calc(100vh - 120px);   Adjust based on header and footer height */
-    gap: 20px;  /* Adds a gap between the bars */
-}
 
-.left-bar, .right-bar {
-    padding: 20px;
-    overflow-y: auto;  /* Enables scrolling */
-    border-radius: 15px;  /* Adds rounded corners */
-}
 
-.left-bar {
-    width: 35%;  /* Makes the left bar thinner */
-    background-color: #f0f0f0;
-    max-height: 100%;
-}
-
-.right-bar {
-    width: 65%;  /* Makes the right bar wider */
-    background-color: #f0f0f0;
-    max-height: 100%;
-}
-
-.subjects-text h3 {
-    text-align: center;
-    background: linear-gradient(to right, rgb(236, 73, 19), rgb(175, 22, 175));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-size: 30px;
-    margin-top: 0px;
-    margin-bottom: 15px;
-}
-
-.calendar h3, .right-bar h3 {
-    margin-top: 10px;
-}
-
-.subject-list h3 {
-    margin: auto;
-}
-
-#subject-dropdown {
-    width: 100%;
-    margin-top: 10px;
-}
-
-#enrolled-students, #lecture-tutorial-list {
-    list-style: none;
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
     padding: 0;
-}
-
-#enrolled-students li, #lecture-tutorial-list li {
-    padding: 10px;
-    background-color: #f0f0f0;
-    margin-top: 5px;
-    border-radius: 5px;
-}
-
-
-/* Add placeholder color */
-select::placeholder, input::placeholder {
-    color: #888;
-}
-
-/* Styling for select and input fields */
-select {
-    border-radius: 8px;
-    padding: 15px;
-    font-size: 15px;
-    border: 1px solid #ccc;
-    margin-right: 8px; /* Space between elements */
-    margin-bottom: 8px;
-    margin-top: 0px;
-}
-
-.subject-item {
-    font-size: 14px bold; /* Smaller font size */
-    background-color: #f9d9cd;
-    color:#000000;
-    padding: 15px; /* Space inside the border */
-    margin: 8px 0; /* Space between items */
-    cursor: pointer; /* Indicate that it's clickable */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Shadow effect */
-    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
-}
-
-.subject-item:hover,
-.subject-item.active {
-    color: #ffffff;
-    background-color: #f96c25;
-    transform: scale(1.02);
-}
-
-span {
-    font-size: 15px;
-    color: #000000;
-    font-weight: bold;
-}
-
-#subject-code, #subject-title{
-    font-size: 20px;
-}
-
-
-.section-dropdown {
     display: flex;
-    width: 100%; /* Make it the same width as the subject-item */
-    background-color: lightgrey;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-.section-dropdown:focus {
-    background-color: white;
+
+.container1 {
+    width: 66.67%; /* 2/3 of the screen width */
+    margin: 20px auto; /* Center align horizontally and add some top margin */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+section {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.form-group, .input-group, .level-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+select, input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.level-group {
+    
+    padding: 15px;
+    
+}
+
+.level-input-container, .input-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.level-input, .classroom-input {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+.danger-btn{
+    background-color: #b92006ef;
+    margin: 10px;
+}
+button {
+    cursor: pointer;
+    background-color: #7a7a7a;
+    color: white;
+    border: none;
+    transition: background-color 0.3s;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 3px;
+    width: auto;
+}
+
+.remove-btn {
+    background-color: #b92006ef;
+    margin: 10px;
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+    .container1 {
+        width: 95%;
+    }
+
+    .level-input-container, .input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .level-input, .classroom-input, .remove-btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .button-container {
+        flex-direction: column;
+    }
 }
 
 .header {
@@ -314,3 +328,12 @@ span {
     background-color: rgba(0,0,0,0.5);
     z-index: 1000;
 }
+
+
+
+
+
+
+
+
+

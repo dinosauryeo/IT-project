@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Management</title>
+    <link rel="stylesheet" href="static/css/styles4.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <a href="javascript:void(0);" onclick="loadHomePage()">
+                <img src="static/images/logoitself.png" alt="VIT Logo">
+            </a>
+        </div>
+        <div class="title">Timetable</div>
+        <div class="hamburger-menu">
+            <i class="fas fa-bars" onclick="toggleMenu()"></i>
+        </div>
+    </div>
+
+    <div id="sideMenu" class="side-menu">
+        <div class="close-btn" onclick="toggleMenu()">
+            <i class="fas fa-times"></i>
+        </div>
+        <ul>
+            <li onclick="loadHomePage()">Home</li>
+            <li onclick="loadStudentPage()">Student</li>
+            <li onclick="loadUploadPage()">Upload</li>
+            <li onclick="loadGeneratePage()">Generate</li>
+            <li onclick="loadLocationPage()">Add Location</li>
+            <li onclick="logout()">Logout</li>
+        </ul>
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div class="navbar">
+        <ul>
+            <li id="home-link" onclick="loadHomePage()">Home</li>
+            <li onclick="loadStudentPage()">Student</li>
+            <li onclick="loadUploadPage()">Upload</li>
+            <li onclick="loadGeneratePage()">Generate</li>
+            <li id="logout-link" onclick="logout()" class="logout">Logout</li>
+        </ul>
+    </div>
+
+    <div class="container1">
+        <section id="campusSection">
+            <h2>Select Campus</h2>
+            <select id="campusSelect">
+                <option value="" disabled selected>Select Campus</option>
+                <option value="Melbourne">Melbourne</option>
+                <option value="Geelong">Geelong</option>
+                <option value="Adelaide">Adelaide</option>
+                <option value="Sydney">Sydney</option>
+            </select>
+            <div class="button-container">
+                <button onclick="deleteAllBuildingsInCampus()" class="danger-btn">Delete All Buildings</button>
+            </div>
+        </section>
+
+        <section id="buildingSection" style="display: none;">
+            <h2>Add Buildings</h2>
+            <div id="buildingInputs">
+                <div class="input-group">
+                    <input type="text" class="building-input" placeholder="Enter building name">
+                    <button class="remove-btn" onclick="removeInput(this)">-</button>
+                </div>
+            </div>
+            <div class="button-container">
+                <button onclick="addBuildingInput()">+ building</button>
+                <button onclick="addBuildings()">Save Buildings</button>
+            </div>
+        </section>
+
+        <section id="classroomSection" style="display: none;">
+            <h2>Add Classrooms</h2>
+            <select id="buildingSelect"></select>
+            <div class="button-container">
+                <button onclick="deleteAllClassroomsInBuilding()" class="danger-btn">Delete All Classrooms in Building</button>
+                <button onclick="addLevelInput()">+ Level</button>
+            </div>
+            <div id="levelInputs">
+                <div class="level-group">
+                    <div class="level-input-container">
+                        <input type="text" class="level-input" placeholder="Enter level">
+                        <button class="remove-btn" onclick="removeLevelInput(this)">- Level</button>
+                        <button onclick="addClassroomInput(this)">+ Classroom</button>
+                    </div>
+                    <div class="classroom-inputs"></div>
+                </div>
+            </div>     
+            <div class="button-container">
+                <button onclick="addClassrooms()">Save Classrooms</button>
+            </div>
+        </section>
+
+        <section id="existingLocations">
+            <h2>Existing Locations</h2>
+            <div id="locationList"></div>
+        </section>
+    </div>
+
+    <script src="static/js/script8.js"></script>
+</body>
+</html>

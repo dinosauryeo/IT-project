@@ -15,6 +15,7 @@ from mongoDB import generate_timetable_for_students
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import csv
+from bson import ObjectId
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -100,6 +101,112 @@ def login():
         return jsonify({"status": "fail", "message": "Invalid username or password"})
     
 
+
+@app.route('/location')
+def location_page():
+    if "logged_in" in session:
+        return render_template('location.html')
+    else:
+        return render_template('login.html')
+
+@app.route('/get_buildings/<campus>', methods=['GET'])
+def get_buildings(campus):
+    client = mongoDB.login()
+    db = client['IT-project']
+    campus_collection = db[f'{campus}_Locations']
+    buildings = list(campus_collection.distinct('building'))
+    return jsonify(buildings)
+
+@app.route('/add_buildings', methods=['POST'])
+def add_buildings():
+    client = mongoDB.login()
+    db = client['IT-project']
+    data = request.json
+    campus = data['campus']
+    buildings = data['buildings']
+    campus_collection = db[f'{campus}_Locations']
+    
+    for building in buildings:
+        existing_building = campus_collection.find_one({'building': building})
+        if not existing_building:
+            campus_collection.insert_one({'campus': campus, 'building': building})
+    
+    return jsonify({'success': True}), 201
+
+@app.route('/add_classrooms', methods=['POST'])
+def add_classrooms():
+    client = mongoDB.login()
+    db = client['IT-project']
+    data = request.json
+    campus = data['campus']
+    building = data['building']
+    classroom_data = data['classroomData']
+    campus_collection = db[f'{campus}_Locations']
+    
+    for level_data in classroom_data:
+        level = level_data['level']
+        classrooms = level_data['classrooms']
+        for classroom in classrooms:
+            campus_collection.insert_one({
+                'campus': campus,
+                'building': building,
+                'level': level,
+                'classroom': classroom
+            })
+    
+    return jsonify({'success': True}), 201
+
+@app.route('/get_locations', methods=['GET'])
+def get_locations():
+    client = mongoDB.login()
+    db = client['IT-project']
+    locations = []
+    for campus in ['Melbourne', 'Geelong', 'Adelaide', 'Sydney']:
+        campus_collection = db[f'{campus}_Locations']
+        campus_locations = list(campus_collection.find({'classroom': {'$exists': True}}))
+        for loc in campus_locations:
+            loc['_id'] = str(loc['_id'])  # Convert ObjectId to string
+        locations.extend(campus_locations)
+    return jsonify(locations)
+
+@app.route('/delete_location/<location_id>', methods=['DELETE'])
+def delete_location(location_id):
+    client = mongoDB.login()
+    db = client['IT-project']
+    for campus in ['Melbourne', 'Geelong', 'Adelaide', 'Sydney']:
+        campus_collection = db[f'{campus}_Locations']
+        result = campus_collection.delete_one({'_id': ObjectId(location_id)})
+        if result.deleted_count > 0:
+            return jsonify({'success': True}), 200
+    return jsonify({'success': False, 'error': 'Location not found'}), 404
+
+@app.route('/delete_all_buildings_in_campus/<campus>', methods=['DELETE'])
+def delete_all_buildings_in_campus(campus):
+    client = mongoDB.login()
+    db = client['IT-project']
+    campus_collection = db[f'{campus}_Locations']
+    
+    result = campus_collection.delete_many({})
+    
+    if result.deleted_count > 0:
+        return jsonify({'success': True, 'message': f'Deleted {result.deleted_count} documents'}), 200
+    else:
+        return jsonify({'success': False, 'message': 'No documents found to delete'}), 404
+
+@app.route('/delete_all_classrooms_in_building/<campus>/<building>', methods=['DELETE'])
+def delete_all_classrooms_in_building(campus, building):
+    client = mongoDB.login()
+    db = client['IT-project']
+    campus_collection = db[f'{campus}_Locations']
+    
+    result = campus_collection.delete_many({'building': building, 'classroom': {'$exists': True}})
+    
+    if result.deleted_count > 0:
+        return jsonify({'success': True, 'message': f'Deleted {result.deleted_count} classrooms'}), 200
+    else:
+        return jsonify({'success': False, 'message': 'No classrooms found to delete'}), 404
+
+
 @app.route('/editsubject', methods=['POST'])
 def editsubject():
     try:
@@ -137,6 +244,14 @@ def editsubject():
 def editsubject_page():
     return render_template('EditSubjects.html')
     #make sure when you click save you back to the previous page with memory for year and semester so people dont need to filled everything again
+
+@app.route('/get_campus_locations/<campus>', methods=['GET'])
+def get_campus_locations(campus):
+    client = mongoDB.login()
+    db = client['IT-project']
+    campus_collection = db[f'{campus}_Locations']
+    locations = list(campus_collection.find({}, {'_id': 0}))
+    return jsonify(locations)
 
 @app.route('/createsubject', methods=['GET', 'POST'])
 def createsubject_page():

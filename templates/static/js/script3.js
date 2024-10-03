@@ -14,7 +14,38 @@ function loadGeneratePage(){
 function addSubject() {
     window.location.href = '/createsubject';
 }
+function loadLocationPage() {
+    window.location.href = '/location';
+}
 
+function toggleMenu() {
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('overlay');
+    
+    if (sideMenu.classList.contains('active')) {
+        sideMenu.classList.remove('active');
+        overlay.style.display = 'none';
+    } else {
+        sideMenu.classList.add('active');
+        overlay.style.display = 'block';
+    }
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(event) {
+    const sideMenu = document.getElementById('sideMenu');
+    const hamburgerMenu = document.querySelector('.hamburger-menu');
+    
+    if (!sideMenu.contains(event.target) && !hamburgerMenu.contains(event.target)) {
+        sideMenu.classList.remove('active');
+        document.getElementById('overlay').style.display = 'none';
+    }
+});
+
+// Prevent clicks inside the menu from closing it
+document.getElementById('sideMenu').addEventListener('click', function(event) {
+    event.stopPropagation();
+});
 
 function showPage(pageId) {
     // Hide all pages
@@ -263,11 +294,9 @@ function addSectionToCategory(sectionType) {
     });
 }
 
-// Function to add a module within a section
 function addModule(sectionDiv, sectionType) {
-    // Get the current count of modules for this section
     const moduleCount = sectionDiv.querySelectorAll('.module').length + 1;
-    const sectionNumber = sectionDiv.querySelector('.section-title').textContent.split(' ')[1]; // Extract section number
+    const sectionNumber = sectionDiv.querySelector('.section-title').textContent.split(' ')[1];
 
     const moduleDiv = document.createElement('div');
     moduleDiv.className = 'module';
@@ -300,21 +329,96 @@ function addModule(sectionDiv, sectionType) {
         </div>
         <div class="select-row">
             <input type="text" id="${sectionType}-name-${sectionNumber}-${moduleCount}" name="${sectionType}-name" placeholder="${sectionType === 'lecture' ? 'Lecturer' : 'Tutor'}">
-            <input type="text" id="${sectionType}-location-${sectionNumber}-${moduleCount}" name="${sectionType}-location" placeholder="Location">
+            <select id="${sectionType}-building-${sectionNumber}-${moduleCount}" name="${sectionType}-building" class="location-dropdown">
+                <option value="" disabled selected>Select Building</option>
+            </select>
+            <select id="${sectionType}-level-${sectionNumber}-${moduleCount}" name="${sectionType}-level" class="location-dropdown">
+                <option value="" disabled selected>Select Level</option>
+            </select>
+            <select id="${sectionType}-classroom-${sectionNumber}-${moduleCount}" name="${sectionType}-classroom" class="location-dropdown">
+                <option value="" disabled selected>Select Classroom</option>
+            </select>
         </div>
     `;
 
     sectionDiv.appendChild(moduleDiv);
-    populateTimeDropdowns(); // Populate time dropdowns after adding a new module
+    populateTimeDropdowns();
+    populateLocationDropdowns(moduleDiv);
 
-    // Handle delete module button
     moduleDiv.querySelector('.delete-module-btn').addEventListener('click', function() {
-        const confirmDelete = confirm("Are you sure you want to delete this module?");
-        if (confirmDelete) {
+        if (confirm("Are you sure you want to delete this module?")) {
             sectionDiv.removeChild(moduleDiv);
             updateModuleNumbers(sectionDiv, sectionType);
         }
     });
+}
+
+async function populateLocationDropdowns(moduleDiv) {
+    const campus = document.getElementById('campus').value;
+    if (!campus) {
+        alert('Please select a campus first');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/get_campus_locations/${campus}`);
+        const locations = await response.json();
+
+        const buildingSelect = moduleDiv.querySelector('select[name$="-building"]');
+        const levelSelect = moduleDiv.querySelector('select[name$="-level"]');
+        const classroomSelect = moduleDiv.querySelector('select[name$="-classroom"]');
+
+        // Populate buildings
+        const buildings = [...new Set(locations.map(loc => loc.building))];
+        buildings.forEach(building => {
+            const option = document.createElement('option');
+            option.value = building;
+            option.textContent = building;
+            buildingSelect.appendChild(option);
+        });
+
+        // Event listener for building selection
+        buildingSelect.addEventListener('change', () => {
+            const selectedBuilding = buildingSelect.value;
+            
+            // Filter levels for the selected building
+            const levels = [...new Set(locations
+                .filter(loc => loc.building === selectedBuilding)
+                .map(loc => loc.level))];
+            
+            // Populate levels
+            levelSelect.innerHTML = '<option value="" disabled selected>Select Level</option>';
+            levels.forEach(level => {
+                const option = document.createElement('option');
+                option.value = level;
+                option.textContent = level;
+                levelSelect.appendChild(option);
+            });
+        });
+
+        // Event listener for level selection
+        levelSelect.addEventListener('change', () => {
+            const selectedBuilding = buildingSelect.value;
+            const selectedLevel = levelSelect.value;
+            
+            // Filter classrooms for the selected building and level
+            const classrooms = locations
+                .filter(loc => loc.building === selectedBuilding && loc.level === selectedLevel)
+                .map(loc => loc.classroom);
+            
+            // Populate classrooms
+            classroomSelect.innerHTML = '<option value="" disabled selected>Select Classroom</option>';
+            classrooms.forEach(classroom => {
+                const option = document.createElement('option');
+                option.value = classroom;
+                option.textContent = classroom;
+                classroomSelect.appendChild(option);
+            });
+        });
+
+    } catch (error) {
+        console.error('Error fetching locations:', error);
+    }
 }
 
 // Function to update the numbering of sections
