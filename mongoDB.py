@@ -960,6 +960,7 @@ def generate_timetable_for_students(database_name):
 
             for student in students_data:
                 student_id = student.get('StudentID')
+                student_name = student.get('Student Name')
                 personal_email = student.get('Personal Email')
 
                 for attempt in range(10):  # Attempt to generate a timetable up to 10 times
@@ -1031,6 +1032,7 @@ def generate_timetable_for_students(database_name):
                     if not conflict:
                         student_timetables.append({
                             'StudentID': student_id,
+                            'StudentName': student_name,
                             'PersonalEmail': personal_email,
                             'Timetable': enrolled_courses
                         })
