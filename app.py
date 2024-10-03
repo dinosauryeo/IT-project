@@ -621,12 +621,6 @@ def generate_timetable():
         print(f"Error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
-
 
 
 
