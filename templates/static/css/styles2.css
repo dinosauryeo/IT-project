@@ -477,3 +477,19 @@ select, input {
 #edit-subject:hover {
     background-color: #ccc; /* Darker background on hover */
 }
+
+
+
+.student-entry {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer; /* 让鼠标悬停时显示指针，表明可点击 */
+    transition: background-color 0.3s;
+    background-color: lightblue; /* 背景色 */
+    border-radius: 15px; /* 圆角半径 */
+}
+
+.student-entry:hover {
+    background-color: #f0f0f0; /* 鼠标悬停时改变背景颜色 */
+}
