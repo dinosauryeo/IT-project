@@ -16,6 +16,12 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import csv
 from bson import ObjectId
+import logging
+import re
+import traceback
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -100,8 +106,86 @@ def login():
     else:
         return jsonify({"status": "fail", "message": "Invalid username or password"})
     
+# 09/10 12:53 last modify
+@app.route('/api/get-year-semesters')
+def get_year_semesters():
+    client = mongoDB.login()
+    all_dbs = client.list_database_names()  # List all database names
 
+    # Define the valid semester names
+    valid_terms = ["Semester1", "Semester2", "Winter", "Summer"]
+    
+    # Filter database names that match the year_semester pattern
+    filtered_dbs = [
+        db_name for db_name in all_dbs
+        if "_" in db_name and
+           db_name.split('_')[0].isdigit() and
+           db_name.split('_')[1] in valid_terms
+    ]
 
+    client.close()
+    return jsonify(filtered_dbs)
+
+#09/10 1:40 last modify
+@app.route('/get-enrolled-students', methods=['GET'])
+def get_enrolled_students():
+    try:
+        subject_code = request.args.get('subject_code')
+        year = request.args.get('year')
+        semester = request.args.get('semester')
+        campus = request.args.get('campus')
+        folder_prefix = request.args.get('folder_prefix')
+
+        print(f"Received request with parameters: subject_code={subject_code}, year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}")
+
+        # Connect to MongoDB
+        client = mongoDB.login()
+
+        # Find the correct database
+        db_name = f'{year}_{semester}'
+        db = client[db_name]
+        print(f"Accessing database: {db_name}")
+
+        # Find the correct collection (folder)
+        folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(campus)}.*")
+        collections = db.list_collection_names()
+        matching_collections = [coll for coll in collections if folder_pattern.match(coll)]
+
+        if not matching_collections:
+            print(f"No collection found matching pattern: {folder_pattern}")
+            return jsonify({"count": 0, "students": []})
+
+        collection_name = matching_collections[0]
+        collection = db[collection_name]
+        print(f"Found collection: {collection_name}")
+
+        # Get all students from the collection
+        students = list(collection.find({}))
+        print(f"Number of students in collection: {len(students)}")
+
+        # Filter students enrolled in the subject
+        enrolled_students = [
+            student for student in students
+            if student.get(subject_code) == "ENRL"
+        ]
+        enrolled_count = len(enrolled_students)
+        print(f"Number of enrolled students for subject {subject_code}: {enrolled_count}")
+
+        # Return only necessary information
+        result = [
+            {
+                "StudentID": student.get("StudentID"),
+                "Student_Name": student.get("Student Name")
+            }
+            for student in enrolled_students
+        ]
+
+        print(f"Returning {enrolled_count} students")
+        return jsonify({"count": enrolled_count, "students": result})
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route('/location')
 def location_page():
     if "logged_in" in session:
@@ -158,6 +242,10 @@ def add_classrooms():
 
 @app.route('/get_locations', methods=['GET'])
 def get_locations():
+    campus = request.args.get('campus')
+    if not campus:
+        return jsonify({'error': 'Campus parameter is required'}), 400
+
     client = mongoDB.login()
     db = client['IT-project']
     locations = []
@@ -168,6 +256,7 @@ def get_locations():
             loc['_id'] = str(loc['_id'])  # Convert ObjectId to string
         locations.extend(campus_locations)
     return jsonify(locations)
+
 
 @app.route('/delete_location/<location_id>', methods=['DELETE'])
 def delete_location(location_id):
@@ -207,44 +296,73 @@ def delete_all_classrooms_in_building(campus, building):
         return jsonify({'success': False, 'message': 'No classrooms found to delete'}), 404
 
 
+@app.route('/editsubject', methods=['GET'])
+def editsubject_page():
+    return render_template('EditSubjects.html')
+
+@app.route('/get_subject_data', methods=['GET'])
+def get_subject_data():
+    client = mongoDB.login()
+    
+    year = request.args.get('year')
+    semester = request.args.get('semester')
+    subject_code = request.args.get('code')
+    campus = request.args.get('campus')
+
+    logging.debug(f"Fetching subject data: year={year}, semester={semester}, code={subject_code}, campus={campus}")
+
+    if not all([year, semester, subject_code, campus]):
+        return jsonify({'status': 'error', 'message': 'Missing required parameters'}), 400
+
+    year_semester = f"{year}_{semester}"
+    db = client[year_semester]
+    collection = db['Subjects-Details']
+
+    subject = collection.find_one({'subjectCode': subject_code, 'campus': campus})
+    if subject:
+        # Convert ObjectId to string for JSON serialization
+        subject['_id'] = str(subject['_id'])
+        logging.debug(f"Subject found: {subject}")
+        return jsonify(subject), 200
+    else:
+        logging.warning(f"Subject not found: year={year}, semester={semester}, code={subject_code}, campus={campus}")
+        return jsonify({'status': 'error', 'message': 'Subject not found'}), 404
+    
+
 @app.route('/editsubject', methods=['POST'])
-def editsubject():
+def update_subject():
+    client = mongoDB.login()
+    
     try:
-        # Parse the incoming JSON data
         subject_data = request.get_json()
         year = subject_data.get('year')
         semester = subject_data.get('semester')
         subject_code = subject_data.get('subjectCode')
-        
-        # Construct the database name
-        year_semester = f"{year}_{semester}"
-        
-        # Connect to MongoDB
-        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
-        db = client[year_semester]  # Connect to the specific year and semester database
-        collection = db['Subjects-Details']  # Collection where your subjects are stored
+        campus = subject_data.get('campus')
 
-        # Find and update the subject
+        logging.debug(f"Updating subject: year={year}, semester={semester}, code={subject_code}, campus={campus}")
+
+        year_semester = f"{year}_{semester}"
+        db = client[year_semester]
+        collection = db['Subjects-Details']
+
         result = collection.update_one(
-            {'subjectCode': subject_code},
+            {'subjectCode': subject_code, 'campus': campus},
             {'$set': subject_data}
         )
 
         if result.matched_count == 0:
+            logging.warning(f"Subject not found for update: year={year}, semester={semester}, code={subject_code}, campus={campus}")
             return jsonify({'status': 'error', 'message': 'Subject not found'}), 404
         else:
+            logging.info(f"Subject updated successfully: year={year}, semester={semester}, code={subject_code}, campus={campus}")
             return jsonify({'status': 'success', 'message': 'Subject updated successfully'}), 200
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"Error updating subject: {str(e)}")
         return jsonify({'status': 'error', 'message': 'Failed to update subject'}), 500
-
-
-@app.route('/editsubject', methods=['GET'])
-def editsubject_page():
-    return render_template('EditSubjects.html')
-    #make sure when you click save you back to the previous page with memory for year and semester so people dont need to filled everything again
-
+    
+    
 @app.route('/get_campus_locations/<campus>', methods=['GET'])
 def get_campus_locations(campus):
     client = mongoDB.login()
@@ -289,64 +407,64 @@ def createsubject_page():
 
 
 
-
+# 08/10 7:30 last modify
 @app.route('/getsubjects', methods=['GET'])
 def get_subjects():
-    year_semester = request.args.get('year_semester')  # Get the year and semester in "2019_Semester1" format
-    print(f"Year and Semester received: {year_semester}")  # Debugging line to check the year_semester value
-    if not year_semester:
-        return jsonify({'status': 'error', 'message': 'Year and semester are required'}), 400
+    year_semester = request.args.get('year_semester')
+    campus = request.args.get('campus')
+
+    if not year_semester or not campus:
+        return jsonify({'status': 'error', 'message': 'Year/semester and campus are required'}), 400
 
     try:
-        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
-
+        client = mongoDB.login()
         db = client[year_semester]  # Connect to the specific year and semester database
         collection = db['Subjects-Details']  # Collection where your subjects are stored
-
-        # Fetch all subjects from the collection including coordinator and campus
-        subjects = list(collection.find({}, {'_id': 0, 'subjectName': 1, 'subjectCode': 1, 'coordinator': 1, 'campus': 1}))
-        print(f"Raw subjects fetched from MongoDB: {subjects}")  # Debugging output to see raw data from MongoDB
-
-        # Combine fields for each subject
+        
+        # Fetch subjects for the specified campus
+        subjects = list(collection.find({'campus': campus}, {'_id': 0, 'subjectName': 1, 'subjectCode': 1, 'coordinator': 1, 'campus': 1}))
+        
         subject_list = [
             {
                 'subjectString': f"{subject.get('subjectCode', 'N/A')} - {subject.get('subjectName', 'N/A')}",
                 'subjectCode': subject.get('subjectCode', 'N/A'),
                 'coordinator': subject.get('coordinator', 'N/A'),
                 'campus': subject.get('campus', 'N/A')
-            } 
+            }
             for subject in subjects
         ]
-
-        # Debugging output to check the structure
-        print("Processed subject list:", subject_list)
-
-        return jsonify(subject_list), 200  # Return JSON data
+        
+        return jsonify(subject_list), 200
     except Exception as e:
         print(f"An error occurred: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to fetch subjects'}), 500
+    
 
-
-
+# 08/10 6:59 last modify
 @app.route('/getsubjectdetails', methods=['GET'])
 def get_subject_details():
     subject_code = request.args.get('subject_code')
-    year_semester = request.args.get('year_semester')
-    
+    year = request.args.get('year')
+    semester = request.args.get('semester')
+    campus = request.args.get('campus')
+
     print(f"Received subject_code: {subject_code}")
-    print(f"Received year_semester: {year_semester}")
-    
-    if not subject_code or not year_semester:
-        return jsonify({'status': 'error', 'message': 'Subject code and year/semester are required'}), 400
+    print(f"Received year: {year}")
+    print(f"Received semester: {semester}")
+    print(f"Received campus: {campus}")
+
+    if not all([subject_code, year, semester, campus]):
+        return jsonify({'status': 'error', 'message': 'Subject code, year, semester, and campus are required'}), 400
 
     try:
-        client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
-        db = client[year_semester]  # Connect to the specific year and semester database
+        client = mongoDB.login()
+        db = client[f"{year}_{semester}"]  # Connect to the specific year and semester database
         collection = db['Subjects-Details']  # Collection where your subjects are stored
-        subject = collection.find_one({'subjectCode': subject_code}, {'_id': 0})
+        
+        subject = collection.find_one({'subjectCode': subject_code, 'campus': campus}, {'_id': 0})
         
         print(f"Found subject: {subject}")  # Check if the subject is found
-        print(f"Received subject_code: {subject_code}")
+        
         if subject:
             return jsonify(subject), 200
         else:
@@ -355,6 +473,38 @@ def get_subject_details():
         print(f"An error occurred: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to fetch subject details'}), 500
 
+# 08/10 4:10 last modify
+@app.route('/inherit_subjects', methods=['POST'])
+def inherit_subjects():
+    data = request.json
+    from_year_semester = f"{data['fromYear']}_{data['fromSemester']}"
+    to_year_semester = f"{data['toYear']}_{data['toSemester']}"
+
+    try:
+        client = mongoDB.login()
+        # Source database and collection
+        from_db = client[from_year_semester]
+        from_collection = from_db['Subjects-Details']
+
+        # Destination database and collection
+        to_db = client[to_year_semester]
+        to_collection = to_db['Subjects-Details']
+
+        # Fetch all documents from the source collection
+        subjects = list(from_collection.find({}, {'_id': 0}))  # Exclude MongoDB _id
+
+        # Update year and semester in each document
+        for subject in subjects:
+            subject['year'] = data['toYear']
+            subject['semester'] = data['toSemester']
+
+        # Insert the modified documents into the destination collection
+        if subjects:
+            to_collection.insert_many(subjects)
+
+        return jsonify({'status': 'success', 'message': f'Inherited {len(subjects)} subjects'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 # 14/09 10:06 last modify
 # Route to handle file upload
@@ -591,6 +741,7 @@ def relogin():
 #     except Exception as e:
 #         print(f"Error: {str(e)}")
 #         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
+
 @app.route('/generate_timetable', methods=['POST'])
 def generate_timetable():
     try:
@@ -624,13 +775,128 @@ def generate_timetable():
 
 
 
+@app.route('/api/get-degrees', methods=['GET'])
+def get_degrees():
+    client = mongoDB.login()
+    db = client["IT-project"]
+    degrees_collection = db["Degrees"]
+    degrees = list(degrees_collection.find({}, {"_id": 0, "name": 1}))
+    return jsonify(degrees)
 
+@app.route('/api/add-degree', methods=['POST'])
+def add_degree():
+    client = mongoDB.login()
+    db = client["IT-project"]
+    degrees_collection = db["Degrees"]
+    try:
+        new_degree = request.json.get('name')
+        if new_degree:
+            if degrees_collection.find_one({"name": new_degree}):
+                return jsonify({"success": False, "message": "Degree already exists"})
+            degrees_collection.insert_one({"name": new_degree})
+            return jsonify({"success": True})
+        return jsonify({"success": False, "message": "Invalid degree name"})
+    except Exception as e:
+        print(f"Error in add_degree: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "message": "Server error occurred"}), 500
+
+@app.route('/api/remove-degree', methods=['POST'])
+def remove_degree():
+    client = mongoDB.login()
+    db = client["IT-project"]
+    degrees_collection = db["Degrees"]
+    try:
+        degree_to_remove = request.json.get('name')
+        if degree_to_remove:
+            result = degrees_collection.delete_one({"name": degree_to_remove})
+            if result.deleted_count > 0:
+                return jsonify({"success": True})
+            return jsonify({"success": False, "message": "Degree not found"})
+        return jsonify({"success": False, "message": "Invalid degree name"})
+    except Exception as e:
+        print(f"Error in remove_degree: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "message": "Server error occurred"}), 500
+
+#09/10 4.47 last modify
+@app.route('/get-enrolled-students-timetable', methods=['GET'])
+def get_enrolled_students_timetable():
+    try:
+        year = request.args.get('year')
+        semester = request.args.get('semester')
+        campus = request.args.get('campus')
+        folder_prefix = request.args.get('folder_prefix')
+        degree_name = request.args.get('degree_name')
+        sort_method = request.args.get('sort_method', 'alphabetical')
+
+        print(f"Received request with parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}, sort_method={sort_method}")
+
+        # Check if all required parameters are provided
+        if not all([year, semester, campus, folder_prefix, degree_name]):
+            return jsonify({"error": "Missing required parameters"}), 400
+
+        # Connect to MongoDB
+        client = mongoDB.login()
+
+        # Find the correct database
+        db_name = f'{year}_{semester}'
+        db = client[db_name]
+        print(f"Accessing database: {db_name}")
+
+        # Find the correct collection (folder)
+        folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
+        collections = db.list_collection_names()
+        matching_collections = [coll for coll in collections if folder_pattern.match(coll)]
+
+        if not matching_collections:
+            print(f"No collection found matching pattern: {folder_pattern}")
+            return jsonify({"count": 0, "students": []})
+
+        collection_name = matching_collections[0]
+        collection = db[collection_name]
+        print(f"Found collection: {collection_name}")
+
+        # Get all students from the collection
+        students = list(collection.find({}))
+        print(f"Number of students in collection: {len(students)}")
+
+        # Extract necessary information
+        result = []
+        for student in students:
+            student_data = {
+                "StudentID": student.get("StudentID"),
+                "Student_Name": student.get("Student Name"),
+                "Course Start Date": student.get("Course Start Date"),
+                "Course End Date": student.get("Course End Date"),
+                "Enrolled_Subjects": [key for key, value in student.items() if value == "ENRL"]
+            }
+            result.append(student_data)
+
+        # Apply sorting based on the sort_method
+        if sort_method == 'alphabetical':
+            result.sort(key=lambda x: x['Student_Name'])
+        elif sort_method == 'reverse-alphabetical':
+            result.sort(key=lambda x: x['Student_Name'], reverse=True)
+        elif sort_method == 'id-ascending':
+            result.sort(key=lambda x: x['StudentID'])
+        elif sort_method == 'id-descending':
+            result.sort(key=lambda x: x['StudentID'], reverse=True)
+        elif sort_method == 'random':
+            random.shuffle(result)
+
+        print(f"Returning {len(result)} students")
+        return jsonify({"count": len(result), "students": result})
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
 '''
 return student id and student name and send it to front end
 '''
 @app.route('/students_timetable', methods=['GET'])
 def get_students():
-    client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
+    client = mongoDB.login()
     db = client['2019_Semester1']  # 选择数据库
     collection = db['Students-Enrollment-Details-20240915_190953']  # 选择集合
     try:
@@ -651,7 +917,44 @@ def get_students():
     except Exception as e:
         return jsonify({'error': str(e)}), 500  # 返回错误信息，状态码500'''
     
+@app.route('/get-student-timetable')
+def get_student_timetable():
+    year = request.args.get('year')
+    semester = request.args.get('semester')
+    campus = request.args.get('campus')
+    folder_prefix = request.args.get('folder_prefix')
+    degree_name = request.args.get('degree_name')
+    student_id = request.args.get('student_id')
 
+    print(f"Received parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}, student_id={student_id}")
+
+    client = mongoDB.login()
+    db_name = f'{year}_{semester}'
+    db = client[db_name]
+
+    print(f"Connected to database: {db_name}")
+
+    folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
+    collections = db.list_collection_names()
+    print(f"Available collections: {collections}")
+
+    timetable_collection = next((coll for coll in collections if folder_pattern.match(coll)), None)
+    print(f"Matched timetable collection: {timetable_collection}")
+
+    if timetable_collection:
+        print(f"Searching for StudentID: {student_id}")
+        student_data = db[timetable_collection].find_one({"StudentID": int(student_id)})
+        print(f"Found student data: {student_data is not None}")
+        if student_data and "Timetable" in student_data:
+            print("Timetable found in student data")
+            return jsonify({"timetable": student_data["Timetable"]})
+        else:
+            print("Timetable not found in student data")
+    else:
+        print("No matching timetable collection found")
+
+    print("Returning 404 error")
+    return jsonify({"error": "Timetable not found"}), 404
 
 
 '''

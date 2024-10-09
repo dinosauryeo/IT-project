@@ -54,12 +54,23 @@
                     <div class="subjects-text">
                         <h3>Subjects</h3>
                     </div>
+                    <button id="inherit-btn">Inherit Subjects</button>
                     <!-- Main Selection Bar with "+" Button -->
                     <div>
                         <select id="year-semester" disabled>
                             <option value="" disabled selected>Year Semester</option>
                         </select>
                         <button id="add-year-semester-btn">+</button>
+                        
+                    </div>
+                    <div>
+                        <select id="campus-select" disabled>
+                            <option value="" disabled selected>Campus</option>
+                            <option value="Melbourne">Melbourne</option>
+                            <option value="Geelong">Geelong</option>
+                            <option value="Adelaide">Adelaide</option>
+                            <option value="Sydney">Sydney</option>
+                        </select>
                     </div>
                     
                     <!-- Other content of the left-bar -->
@@ -71,17 +82,13 @@
                         <button id="add-subject-btn" onclick="addSubject()">Add Subject</button>
                     </div>
 
-                    
-                    <div class="calendar">
-                        <h3>Calendar</h3>
-                        <!-- Small calendar will be integrated here -->
-                    </div>
                 </div>
         
                 <div class="right-bar">
                     <!-- Section for Adding Year and Semester -->
                     <div id="add-year-semester-container" class="add-year-semester-page" style="display:none;">
                         <h3>Add Year and Semester</h3>
+                        <button id="close-year-semester-btn" class="close-btn">&times;</button>                        
                         <div id="year-semester-sections">
                             <!-- Multiple year-semester sections will be added here -->
                         </div>
@@ -106,6 +113,24 @@
                             <!-- Student info will be displayed here -->
                         </ul>
                     </div>
+
+                    <div id="inherit-dialog" class="right-bar-section" style="display: none;">
+                        <div class="dialog-header">
+                            <h4>Inherit Subjects</h4>
+                            <button id="close-inherit-btn" class="close-btn">&times;</button>
+                        </div>
+                        <p>From:</p>
+                        <select id="from-year"></select>
+                        <select id="from-semester"></select>
+                        <p>To:</p>
+                        <select id="to-year"></select>
+                        <select id="to-semester"></select>
+                        <div class="dialog-buttons">
+                            <button id="confirm-inherit-btn">Confirm</button>
+                            <button id="cancel-inherit-btn">Cancel</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

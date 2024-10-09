@@ -22,6 +22,35 @@ function loadLocationPage() {
     window.location.href = '/location';
 }
 
+// 14/09 10:21 modify
+// write send email to student 
+function SendEmailToStudents(){
+    fetch('/send_timetable', {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log("timetable(fake) sent");
+            alert("Timetable had been sent");
+        } 
+        else {
+            console.log("timetable failed to send");
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+    });
+}
+
+//Hover event for Home link
+document.getElementById('home-link').addEventListener('click', function() {
+    showPage('home');
+});
+
+
 function toggleMenu() {
     const sideMenu = document.getElementById('sideMenu');
     const overlay = document.getElementById('overlay');
@@ -71,13 +100,68 @@ function showPage(pageId) {
 
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const homeLink = document.getElementById('home-link');
+    if (homeLink) {
+        homeLink.addEventListener('click', function() {
+            showPage('home');
+        });
+    }
+});
 
-//Hover event for Home link
+
+// Hover event for Home link
 document.getElementById('home-link').addEventListener('click', function() {
     showPage('home');
 });
 
+document.getElementById('shuffle-select').addEventListener('change', function() {
+    this.size = 0; // Collapse the dropdown after selection
+});
+
+document.addEventListener('click', function(event) {
+    var shuffleSelect = document.getElementById('shuffle-select');
+    if (!shuffleSelect.contains(event.target)) {
+        shuffleSelect.size = 0; // Collapse the dropdown when clicking outside
+    }
+});
+
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
+    // Initialize variables
+    const yearSemesterSelect = document.getElementById('year-semester');
+    const campusSelect = document.getElementById('campus-select');
+    const degreeSelect = document.getElementById('degree-select');
+    const studentList = document.getElementById('student-list');
+    const shuffleSelect = document.getElementById('shuffle-select');
+    const studentDetails = document.querySelector('.student-details');
+    const searchInput = document.getElementById('search-student');
+    const searchContainer = searchInput.parentNode;
+    const searchButton = document.createElement('button');
+    const clearButton = document.createElement('button');
+    
+    searchButton.textContent = 'Search';
+    searchButton.id = 'search-button';
+    clearButton.textContent = 'Clear';
+    clearButton.id = 'clear-button';
+    
+    // Add both buttons to the search container
+    searchContainer.appendChild(searchButton);
+    searchContainer.appendChild(clearButton);
+
+    let currentStudents = [];
+
+    // Initialize page
+    initializePage();
+
+    function initializePage() {
+        fetchYearSemester();
+        fetchDegrees();
+        setupEventListeners();
+    }
+
     // Get all the navbar items
     var navbarItems = document.querySelectorAll('.navbar li');
 
@@ -93,227 +177,444 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-});
-
-
-// 14/09 10:21 modify
-// write send email to student 
-function SendEmailToStudents(){
-    fetch('/send_timetable', {
-        method: 'POST',
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            console.log("timetable(fake) sent");
-            alert("Timetable had been sent");
-        } 
-        else {
-            console.log("timetable failed to send");
-            alert(data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred');
-    });
-}
-
-//Hover event for Home link
-document.getElementById('home-link').addEventListener('click', function() {
-    showPage('home');
-});
-
-
-
-document.getElementById('uploadForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    var formData = new FormData(this);
-
-    fetch('/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert(data.message);
-        } else if (data.error) {
-            alert(data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred');
-    });
-});
-
-// Function to handle logout
-function logout() {
-    window.location.href = '/logout';
-}
-
-
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Get all the navbar items
-    var navbarItems = document.querySelectorAll('.navbar li');
-
-    // Loop through each item
-    navbarItems.forEach(function (item) {
-        item.addEventListener('click', function () {
-            // Remove 'active' class from all items
-            navbarItems.forEach(function (el) {
-                el.classList.remove('active');
-            });
-            // Add 'active' class to the clicked item
-            this.classList.add('active');
-        });
-    });
-    // Initialize counters for each section type
-    const sectionCounters = {
-        lecture: 0,
-        tutorial: 0,
-        lab: 0
-    };
-
-    // Populate the year dropdown with years from 2000 to current year + 1
-    const yearSelect = document.getElementById('year');
-    const currentYear = new Date().getFullYear();
-    for (let year = 2000; year <= currentYear + 1; year++) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearSelect.appendChild(option);
+    function setupEventListeners() {
+        yearSemesterSelect.addEventListener('change', checkFetchStudents);
+        campusSelect.addEventListener('change', checkFetchStudents);
+        degreeSelect.addEventListener('change', checkFetchStudents);
+        shuffleSelect.addEventListener('change', handleShuffleChange);
+        searchButton.addEventListener('click', performSearch);
+        clearButton.addEventListener('click', clearSearchAndReload);
     }
 
-    // Function to generate time options
-    function generateTimeOptions() {
-        const times = [];
-        for (let h = 7; h <= 22; h++) {
-            for (let m = 0; m < 60; m += 15) {
-                const hour = h.toString().padStart(2, '0');
-                const minute = m.toString().padStart(2, '0');
-                times.push(`${hour}:${minute}`);
-            }
-        }
-        return times;
-    }
-
-    // Populate the time dropdowns
-    function populateTimeDropdowns() {
-        const times = generateTimeOptions();
-        const timeSelects = document.querySelectorAll('.section .time-dropdown');
-        timeSelects.forEach(select => {
-            times.forEach(time => {
-                const option = document.createElement('option');
-                option.value = time;
-                option.textContent = time;
-                select.appendChild(option);
-            });
-        });
-    }
-
-    populateTimeDropdowns();
-
-    // Handle "Add Section" button click
-    document.getElementById('add-section').addEventListener('click', function () {
-        const additionalSections = document.getElementById('additional-sections');
-        const sectionType = prompt('Enter section type (lecture/tutorial/lab):').toLowerCase();
-        
-        if (sectionCounters.hasOwnProperty(sectionType)) {
-            sectionCounters[sectionType]++;
-            const sectionDiv = document.createElement('div');
-            sectionDiv.className = 'section';
-            sectionDiv.innerHTML = `
-                <div class="section-title">${sectionType.charAt(0).toUpperCase() + sectionType.slice(1)} ${sectionCounters[sectionType]}</div>
-                <div class="select-row">
-                    <select id="${sectionType}-day" name="${sectionType}-day">
-                        <option value="" disabled selected>Day</option>
-                        <option value="monday">Monday</option>
-                        <option value="tuesday">Tuesday</option>
-                        <option value="wednesday">Wednesday</option>
-                        <option value="thursday">Thursday</option>
-                        <option value="friday">Friday</option>
-                        <option value="saturday">Saturday</option>
-                        <option value="sunday">Sunday</option>
-                    </select>
-                    <select id="${sectionType}-from" name="${sectionType}-from" class="time-dropdown">
-                        <option value="" disabled selected>From</option>
-                    </select>
-                    <select id="${sectionType}-to" name="${sectionType}-to" class="time-dropdown">
-                        <option value="" disabled selected>To</option>
-                    </select>
-                </div>
-                <div class="select-row">
-                    <input type="text" id="${sectionType}-name" name="${sectionType}-name" placeholder="${sectionType === 'lecture' ? 'Lecturer' : 'Tutor'}">
-                    <input type="text" id="${sectionType}-location" name="${sectionType}-location" placeholder="Location">
-                    <select id="${sectionType}-mode" name="${sectionType}-mode">
-                        <option value="" disabled selected>Delivery Modes</option>
-                        <option value="online">Online</option>
-                        <option value="oncampus">On Campus</option>
-                    </select>
-                </div>
-            `;
-            
-            additionalSections.appendChild(sectionDiv);
-            populateTimeDropdowns(); // Populate time dropdowns after adding a new section
+    function checkFetchStudents() {
+        if (yearSemesterSelect.value && campusSelect.value && degreeSelect.value) {
+            fetchStudents();
         } else {
-            alert('Invalid section type');
+            studentList.innerHTML = '';
+            studentDetails.innerHTML = '';
+            currentStudents = [];
         }
-    });
+    }
 
-    // Show the Create Subject page when "Add Subject" is clicked
-    document.querySelector('button[onclick="addSubject()"]').addEventListener('click', function () {
-        showPage('create-subject');
-    });
-});
+    function fetchStudents() {
+        const yearSemester = yearSemesterSelect.value;
+        const year = yearSemester.substring(0, 4);
+        const semester = yearSemester.substring(5);
+        const campus = campusSelect.value;
+        const degree = degreeSelect.value;
+
+        const params = new URLSearchParams({
+            year: year,
+            semester: semester,
+            campus: campus,
+            folder_prefix: 'Students-Enrollment-Details',
+            degree_name: degree,
+            sort_method: shuffleSelect.value
+        });
+
+        fetch(`/get-enrolled-students-timetable?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                currentStudents = data.students;
+                displayStudents(currentStudents);
+            })
+            .catch(error => console.error('Error fetching students:', error));
+    }
+
+    function displayStudents(students) {
+        const studentList = document.getElementById('student-list');
+        studentList.innerHTML = '';
+        students.forEach(student => {
+            const li = document.createElement('li');
+            li.textContent = `${student.StudentID} ${student.Student_Name}`;
+            li.addEventListener('click', () => {
+                showStudentDetails(student);
+                fetchStudentTimetable(student.StudentID, li);
+            });
+            studentList.appendChild(li);
+        });
+    }
+
+    function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredStudents = currentStudents.filter(student => {
+            const idMatch = String(student.StudentID || '').toLowerCase().includes(searchTerm);
+            const nameMatch = String(student.Student_Name || '').toLowerCase().includes(searchTerm);
+            return idMatch || nameMatch;
+        });
+        displayStudents(filteredStudents);
+    }
+
+    function clearSearchAndReload() {
+        searchInput.value = ''; // Clear the search input
+        if (currentStudents.length > 0) {
+            displayStudents(currentStudents); // Reload all students
+        } else {
+            checkFetchStudents(); // If no students are loaded, try to fetch them
+        }
+    }
+    
+    function showStudentDetails(student) {
+        studentDetails.innerHTML = `
+            <h3>${student.Student_Name}</h3>
+            <p>${degreeSelect.value}</p>
+            <p>Course Date: ${student['Course Start Date']} - ${student['Course End Date']}</p>
+            <p>Enrolled Subjects: ${student.Enrolled_Subjects.join(', ')}</p>
+        `;
+        fetchStudentTimetable(student.StudentID, null);
+    }
+
+    function fetchYearSemester() {
+        fetch('/api/get-year-semesters')
+            .then(response => response.json())
+            .then(data => {
+                populateDropdown(yearSemesterSelect, data);
+                yearSemesterSelect.disabled = false;
+            })
+            .catch(error => console.error('Error fetching year and semester data:', error));
+    }
+
+    function fetchDegrees() {
+        fetch('/api/get-degrees')
+            .then(response => response.json())
+            .then(data => {
+                populateDropdown(degreeSelect, data.map(d => d.name));
+            })
+            .catch(error => console.error('Error fetching degrees:', error));
+    }
+
+    function populateDropdown(dropdown, options) {
+        dropdown.innerHTML = '<option value="" disabled selected>Select Year Semester</option>';
+        options.forEach(option => {
+            const optionElement = new Option(option, option);
+            dropdown.appendChild(optionElement);
+        });
+    }
 
 
 
-function fetchStudents() {
-    fetch('/students_timetable')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+    function handleShuffleChange() {
+        if (yearSemesterSelect.value && campusSelect.value && degreeSelect.value) {
+            fetchStudents();
+        }
+    }
+
+
+
+
+
+
+    function fetchDegrees() {
+        fetch('/api/get-degrees')
+            .then(response => response.json())
+            .then(data => {
+                populateDegreeDropdowns(data);
+            })
+            .catch(error => console.error('Error fetching degrees:', error));
+    }
+    
+    function populateDegreeDropdowns(degrees) {
+        const degreeSelect = document.getElementById('degree-select');
+        const existingDegrees = document.getElementById('existingDegrees');
+        
+        // Clear existing options
+        degreeSelect.innerHTML = '<option value="" disabled selected>Select Degree</option>';
+        existingDegrees.innerHTML = '<option value="" disabled selected>Select Degree</option>';
+        
+        degrees.forEach(degree => {
+            const option = new Option(degree.name, degree.name);
+            degreeSelect.appendChild(option.cloneNode(true));
+            existingDegrees.appendChild(option);
+        });
+    }
+    
+    function addDegreeOption() {
+        const newDegreeName = document.getElementById('newDegreeName').value.trim();
+        if (newDegreeName) {
+            fetch('/api/add-degree', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: newDegreeName }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchDegrees();  // Refresh the degree lists
+                    document.getElementById('newDegreeName').value = '';  // Clear the input
+                    alert('Degree added successfully');
+                } else {
+                    alert('Failed to add degree: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the degree');
+            });
+        } else {
+            alert('Please enter a degree name');
+        }
+    }
+    
+    function removeDegreeOption() {
+        const degreeSelect = document.getElementById('existingDegrees');
+        const selectedDegree = degreeSelect.value;
+        if (selectedDegree) {
+            fetch('/api/remove-degree', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: selectedDegree }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchDegrees();  // Refresh the degree lists
+                    alert('Degree removed successfully');
+                } else {
+                    alert('Failed to remove degree: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while removing the degree');
+            });
+        } else {
+            alert('Please select a degree to remove');
+        }
+    }
+
+    const modifyDegreeBtn = document.getElementById('modify-degree-btn');
+    if (modifyDegreeBtn) {
+        modifyDegreeBtn.addEventListener('click', showModifyDegreeModal);
+    }
+
+    function showModifyDegreeModal() {
+        const modal = document.getElementById('modifyDegreeModal');
+        modal.style.display = 'block';
+    }
+
+    const addDegreeBtn = document.getElementById('add-degree-btn');
+    if (addDegreeBtn) {
+        addDegreeBtn.addEventListener('click', addDegreeOption);
+    }
+
+    const removeDegreeBtn = document.getElementById('remove-degree-btn');
+    if (removeDegreeBtn) {
+        removeDegreeBtn.addEventListener('click', removeDegreeOption);
+    }
+
+    function closeModifyDegreeModal() {
+        const modal = document.getElementById('modifyDegreeModal');
+        modal.style.display = 'none';
+    }
+
+    const saveDegreeChangesBtn = document.getElementById('save-degree-changes-btn');
+    if (saveDegreeChangesBtn) {
+        saveDegreeChangesBtn.addEventListener('click', saveDegreeChanges);
+    }
+
+    function saveDegreeChanges() {
+        closeModifyDegreeModal();
+        alert('Changes saved successfully!');
+    }
+
+    // Attach event handler for closing the modal
+    document.querySelector('.close').addEventListener('click', closeModifyDegreeModal);
+
+
+
+    function fetchStudentTimetable(studentID, studentElement) {
+        const year = yearSemesterSelect.value.substring(0, 4);
+        const semester = yearSemesterSelect.value.substring(5);
+        const campus = campusSelect.value;
+        const degree = degreeSelect.value;
+    
+        const params = new URLSearchParams({
+            year: year,
+            semester: semester,
+            campus: campus,
+            folder_prefix: 'Timetable',
+            degree_name: degree,
+            student_id: studentID
+        });
+    
+        fetch(`/get-student-timetable?${params}`)
+        .then(response => response.json())
         .then(data => {
-            console.log(data); // 在控制台输出学生数据
-            renderStudents(data); // 调用渲染函数，将数据渲染到页面上
+            if (data.timetable) {
+                displayTimetable(data.timetable);
+                const hasCollision = checkTimetableCollisions(data.timetable);
+                if (studentElement) {
+                    if (hasCollision) {
+                        studentElement.classList.add('collision');
+                    } else {
+                        studentElement.classList.remove('collision');
+                    }
+                }
+            } else {
+                console.error('No timetable data found for the student');
+                if (studentElement) {
+                    studentElement.classList.remove('collision');
+                }
+            }
         })
         .catch(error => {
-            console.error('Error fetching students:', error);
+            console.error('Error fetching student timetable:', error);
+            if (studentElement) {
+                studentElement.classList.remove('collision');
+            }
         });
-}
+    }
+    
+    function displayTimetable(timetableData) {
+        const timetableBody = document.getElementById('timetable-body');
+        timetableBody.innerHTML = ''; // Clear existing timetable
+    
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const startTime = 7 * 60; // 7:00 AM in minutes
+        const endTime = 23 * 60; // 11:00 PM in minutes
+    
+        // Create time slots for every 15 minutes
+        for (let time = startTime; time < endTime; time += 15) {
+            const row = document.createElement('tr');
+            const timeCell = document.createElement('td');
+            
+            // Only show time for o'clock slots
+            if (time % 60 === 0) {
+                timeCell.textContent = formatTime(time);
+                timeCell.className = 'time-cell';
+            } else {
+                timeCell.className = 'time-cell empty';
+            }
+            row.appendChild(timeCell);
+    
+            for (let day = 0; day < 7; day++) {
+                const cell = document.createElement('td');
+                const classesForTimeSlot = timetableData.filter(item => 
+                    item.Day.toLowerCase() === days[day].toLowerCase() &&
+                    timeOverlaps(time, item.From, item.To)
+                );
+        
+                if (classesForTimeSlot.length > 0) {
+                    classesForTimeSlot.forEach(classInfo => {
+                        const classStartTime = convertTimeToMinutes(classInfo.From);
+                        if (time === classStartTime) {
+                            const classBlock = document.createElement('div');
+                            classBlock.className = 'class-block';
+                            classBlock.style.backgroundColor = getColorForSectionType(classInfo.SectionType);
+                            classBlock.style.height = calculateBlockHeight(classInfo.From, classInfo.To);
+                            
+                            // Create spans for each line of text
+                            const subjectCodeSpan = document.createElement('span');
+                            subjectCodeSpan.textContent = classInfo.SubjectCode;
+                            const titleSpan = document.createElement('span');
+                            titleSpan.textContent = classInfo.Title;
+                            
+                            classBlock.appendChild(subjectCodeSpan);
+                            classBlock.appendChild(titleSpan);
 
-function renderStudents(students) {
-    const studentContainer = document.getElementById('studentContainer'); 
-    studentContainer.innerHTML = ''; // 清空容器
-
-    students.forEach(student => {
-        // 创建学生条目容器
-        const studentDiv = document.createElement('div');
-        studentDiv.classList.add('student-entry'); // 可选：添加类名用于样式
-
-        // 创建显示学生信息的元素
-        const studentInfo = document.createElement('p');
-        studentInfo.textContent = `${student.id}: ${student.name}`; // 使用正确的属性
-
-        // 为学生条目容器添加点击事件监听器
-        studentDiv.addEventListener('click', () => {
-            console.log(`Student ID: ${student.id}, Name: ${student.name}`);
-            // 在这里添加你希望每个学生被点击后执行的逻辑
-            alert(`Clicked on: ${student.name}`); // 例如弹出提示
+                            // Check for collisions
+                            const collisions = classesForTimeSlot.filter(otherClass => 
+                                otherClass !== classInfo && 
+                                timeOverlaps(classStartTime, otherClass.From, otherClass.To)
+                            );
+                            
+                            if (collisions.length > 0) {
+                                classBlock.classList.add('collision');
+                                // Create collision indicator
+                                const collisionIndicator = document.createElement('div');
+                                collisionIndicator.className = 'collision-indicator';
+                                collisionIndicator.style.height = calculateCollisionHeight(classInfo, collisions);
+                                classBlock.appendChild(collisionIndicator);
+                            }
+                            
+                            cell.appendChild(classBlock);
+                        }
+                    });
+                }
+                row.appendChild(cell);
+            }
+            timetableBody.appendChild(row);
+        }
+    
+        document.getElementById('timetable-container').style.display = 'block';
+    }
+    
+    function calculateCollisionHeight(mainClass, collisions) {
+        const mainStart = convertTimeToMinutes(mainClass.From);
+        const mainEnd = convertTimeToMinutes(mainClass.To);
+        let maxOverlap = 0;
+    
+        collisions.forEach(collision => {
+            const collisionStart = convertTimeToMinutes(collision.From);
+            const collisionEnd = convertTimeToMinutes(collision.To);
+            const overlapStart = Math.max(mainStart, collisionStart);
+            const overlapEnd = Math.min(mainEnd, collisionEnd);
+            const overlap = overlapEnd - overlapStart;
+            maxOverlap = Math.max(maxOverlap, overlap);
         });
+    
+        return `${maxOverlap * 1.5}px`; // Assuming each 15-min slot is 20px high
+    }
+    
+    function calculateBlockHeight(startTime, endTime) {
+        const start = convertTimeToMinutes(startTime);
+        const end = convertTimeToMinutes(endTime);
+        const duration = end - start;
+        return `${duration * 1.5}px`; // Assuming each 15-min slot is 20px high
+    }
+    
+    function timeOverlaps(slotTime, classStart, classEnd) {
+        const slotStart = slotTime;
+        const slotEnd = slotTime + 15;
+        const classStartMinutes = convertTimeToMinutes(classStart);
+        const classEndMinutes = convertTimeToMinutes(classEnd);
+        return (slotStart < classEndMinutes && slotEnd > classStartMinutes);
+    }
+    
+    function convertTimeToMinutes(timeString) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+    
+    function formatTime(minutes) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    }
+    
+    function getColorForSectionType(sectionType) {
+        switch (sectionType.toLowerCase()) {
+            case 'lecture': return '#7AB0B5'; // Light blue
+            case 'tutorial': return '#e8e1ca'; // Light yellow
+            case 'lab': return '#d698a7'; // Light red
+            default: return '#ffffff'; // White for unknown types
+        }
+    }
 
-        // 将学生信息添加到学生条目容器中
-        studentDiv.appendChild(studentInfo);
+    function checkTimetableCollisions(timetableData) {
+        for (let i = 0; i < timetableData.length; i++) {
+            for (let j = i + 1; j < timetableData.length; j++) {
+                if (timetableData[i].Day.toLowerCase() === timetableData[j].Day.toLowerCase()) {
+                    const startTime1 = convertTimeToMinutes(timetableData[i].From);
+                    const endTime1 = convertTimeToMinutes(timetableData[i].To);
+                    const startTime2 = convertTimeToMinutes(timetableData[j].From);
+                    const endTime2 = convertTimeToMinutes(timetableData[j].To);
+    
+                    if (
+                        (startTime1 < endTime2 && endTime1 > startTime2) ||
+                        (startTime2 < endTime1 && endTime2 > startTime1)
+                    ) {
+                        return true; // Collision found on the same day
+                    }
+                }
+            }
+        }
+        return false; // No collisions
+    }
 
-        // 将学生条目容器添加到主容器中
-        studentContainer.appendChild(studentDiv);
-    });
-}
+});
+

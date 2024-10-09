@@ -86,7 +86,6 @@ function logout() {
 
 
 
-
 document.addEventListener('DOMContentLoaded', function () {
     const addYearSemesterBtn = document.getElementById('add-year-semester-btn');
     const addYearSemesterContainer = document.getElementById('add-year-semester-container');
@@ -94,18 +93,97 @@ document.addEventListener('DOMContentLoaded', function () {
     const yearSemesterSelect = document.getElementById('year-semester');
     const addSectionBtn = document.getElementById('add-section-btn');
     const yearSemesterSections = document.getElementById('year-semester-sections');
+    const campusSelect = document.getElementById('campus-select');
     const subjectInfoContainer = document.getElementById('subject-info');
     const subjectContainer = document.getElementById('subject-container'); // Container for subjects
-
     const sectionDropdown = document.createElement('select');
+
+    const inheritBtn = document.getElementById('inherit-btn');
+    const inheritDialog = document.getElementById('inherit-dialog');
+    const confirmInheritBtn = document.getElementById('confirm-inherit-btn');
+    const cancelInheritBtn = document.getElementById('cancel-inherit-btn');
+    const fromYearSelect = document.getElementById('from-year');
+    const fromSemesterSelect = document.getElementById('from-semester');
+    const toYearSelect = document.getElementById('to-year');
+    const toSemesterSelect = document.getElementById('to-semester');
+
+    const closeInheritBtn = document.getElementById('close-inherit-btn');
+    const closeYearSemesterBtn = document.getElementById('close-year-semester-btn');
+    
+    // Function to fetch year and semester from the database
+    function fetchYearSemester() {
+        fetch('/api/get-year-semesters')
+            .then(response => response.json())
+            .then(data => {
+                populateYearSemesterDropdown(data);
+            })
+            .catch(error => console.error('Error fetching year and semester data:', error));
+    }
+
+    // Populate the year-semester dropdown with data from the server
+    function populateYearSemesterDropdown(data) {
+        // Clear existing options first
+        yearSemesterSelect.innerHTML = '<option value="" disabled selected>Year Semester</option>';
+        data.forEach(yearSemester => {
+            const option = new Option(yearSemester, yearSemester);
+            yearSemesterSelect.appendChild(option);
+        });
+        yearSemesterSelect.disabled = false; // Enable the dropdown
+    }
+
+    // Call fetchYearSemester on page load to populate dropdown
+    fetchYearSemester();
+
+    closeInheritBtn.addEventListener('click', hideInheritDialog);
+    function hideInheritDialog() {
+        inheritDialog.style.display = 'none';
+    }
+
+    closeYearSemesterBtn.addEventListener('click', hideYearSemesterSelect);
+    function hideYearSemesterSelect() {
+        addYearSemesterContainer.style.display = 'none';
+    }
+
     sectionDropdown.id = 'section-dropdown';
     sectionDropdown.style.display = 'none'; // Initially hidden
 
     // Show the add-year-semester-container when "+" button is clicked
     addYearSemesterBtn.addEventListener('click', function () {
         addYearSemesterContainer.style.display = 'block';
+        inheritDialog.style.display = 'none';
         subjectInfoContainer.style.display = 'none'; // Hide existing subject info
-        addYearSemesterSection(); // Add the first section
+        //addYearSemesterSection(); // Add the first section
+    });
+    
+    // Initially disable campus select
+    campusSelect.disabled = true;
+
+    // Enable campus select when year-semester is selected
+    yearSemesterSelect.addEventListener('change', function() {
+        const selectedValue = this.value;
+        if (selectedValue) {
+            campusSelect.disabled = false;
+            campusSelect.value = ''; // Reset campus selection
+            subjectContainer.innerHTML = ''; // Clear subject list
+            subjectInfoContainer.style.display = 'none'; // Hide subject info
+        } else {
+            campusSelect.disabled = true;
+        }
+    });
+    
+    // Event listener for campus change
+    campusSelect.addEventListener('change', function() {
+        const selectedYearSemester = yearSemesterSelect.value;
+        const selectedCampus = this.value;
+        console.log('Campus changed:', selectedCampus, 'Year-semester:', selectedYearSemester);
+    
+        if (selectedYearSemester && selectedCampus) {
+            console.log('Fetching subjects for', selectedYearSemester, selectedCampus);
+            fetchSubjects(selectedYearSemester, selectedCampus);
+        } else {
+            console.log('Clearing subjects, not all parameters selected');
+            subjectContainer.innerHTML = '';
+        }
     });
 
     // Function to create and add a year-semester section
@@ -187,103 +265,121 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add event listener to the year-semester dropdown to fetch subjects
     document.getElementById('year-semester').addEventListener('change', function() {
-        const selectedValue = this.value;  // Should be in the format "2019_Semester1"
+        const selectedValue = this.value;
+        const selectedCampus = campusSelect.value;
+        console.log('Year-semester changed:', selectedValue, 'Campus:', selectedCampus);
+    
+        if (selectedValue && selectedCampus) {
+            console.log('Fetching subjects for', selectedValue, selectedCampus);
+            fetchSubjects(selectedValue, selectedCampus);
+        } else {
+            console.log('Clearing subjects, not all parameters selected');
+            subjectContainer.innerHTML = '';
+            if (!selectedCampus) {
+                campusSelect.disabled = false;
+            }
+        }
+    });
 
-        fetch(`/getsubjects?year_semester=${selectedValue}`)
-            .then(response => response.json())
+    function fetchSubjects(yearSemester, campus) {
+        console.log('fetchSubjects called with:', yearSemester, campus);
+        const url = `/getsubjects?year_semester=${yearSemester}&campus=${campus}`;
+        console.log('Fetching from URL:', url);
+    
+        fetch(url)
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Received data:', data);
                 if (Array.isArray(data)) {
-                    subjectContainer.innerHTML = '';  // Clear existing subjects
-
-                    // Populate the container with clickable subjects
-                    data.forEach(subject => {
-                        const subjectItem = document.createElement('div');
-                        subjectItem.classList.add('subject-item');
-                        subjectItem.textContent = subject.subjectString;
-                        subjectItem.dataset.subjectCode = subject.subjectCode;
-                        subjectItem.dataset.coordinator = subject.coordinator; // Add these attributes
-                        subjectItem.dataset.campus = subject.campus;         // Add these attributes
-                        
-                        // Log the data attributes to check their values
-                        // console.log('Coordinator:', subjectItem.dataset.coordinator);
-                        // console.log('Campus:', subjectItem.dataset.campus);
-    
-                        // Create and append the dropdown to each subject item
-                        const sectionDropdown = document.createElement('select');
-                        sectionDropdown.style.display = 'none';  // Hide initially
-                        sectionDropdown.classList.add('section-dropdown'); // Add a class for easy styling and access
-                        subjectItem.appendChild(sectionDropdown);
-    
-                        subjectContainer.appendChild(subjectItem);
-                    });
+                    console.log('Data is an array, populating subject list');
+                    populateSubjectList(data);
                 } else {
+                    console.error('Error fetching subjects:', data.message);
                     alert('Error fetching subjects: ' + data.message);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Error fetching subjects.');
+                console.error('Fetch error:', error);
+                alert('Error fetching subjects: ' + error.message);
             });
-    });
+    }
+    
+    function populateSubjectList(subjects) {
+        console.log('Populating subject list with', subjects.length, 'subjects');
+        subjectContainer.innerHTML = '';
+    
+        subjects.forEach(subject => {
+            console.log('Adding subject:', subject.subjectString);
+            const subjectItem = document.createElement('div');
+            subjectItem.classList.add('subject-item');
+            subjectItem.textContent = subject.subjectString;
+            subjectItem.dataset.subjectCode = subject.subjectCode;
+            subjectItem.dataset.coordinator = subject.coordinator;
+            subjectItem.dataset.campus = subject.campus;
+    
+            subjectContainer.appendChild(subjectItem);
+        });
+    }
 
-    function loadSubjectDetails(subjectCode, yearSemester) {
-        fetch(`/getsubjectdetails?subject_code=${subjectCode}&year_semester=${yearSemester}`)
+    function loadSubjectDetails(subjectCode, yearSemester, campus) {
+        // Split year and semester
+        const year = yearSemester.substring(0, 4);
+        const semester = yearSemester.substring(5);
+    
+        fetch(`/getsubjectdetails?subject_code=${subjectCode}&year=${year}&semester=${semester}&campus=${campus}`)
             .then(response => response.json())
             .then(data => {
                 if (data) {
+                    console.log('Received subject details:', data);
+    
+                    // Update currentSubjectInfo
+                    currentSubjectInfo = {
+                        subjectCode: data.subjectCode,
+                        subjectName: data.subjectName,
+                        coordinator: data.coordinator,
+                        campus: data.campus,
+                        year: year,
+                        semester: semester
+                    };
+                    
                     // Update the subject information in the right bar
                     document.getElementById('subject-code').textContent = data.subjectCode || 'N/A';
                     document.getElementById('subject-title').textContent = data.subjectName || 'N/A';
                     document.getElementById('subject-coordinator').textContent = data.coordinator || 'N/A';
                     document.getElementById('campus').textContent = data.campus || 'N/A';
-
-                    // Clear and populate lecture/tutorial list
-                    const lectureTutorialList = document.getElementById('lecture-tutorial-list');
-                    lectureTutorialList.innerHTML = '';
+    
+                    // Clear and populate lecture/tutorial/lab list
+                    const sectionsList = document.getElementById('lecture-tutorial-list');
+                    sectionsList.innerHTML = '';
+    
                     ['lecture', 'tutorial', 'lab'].forEach(type => {
-                        if (data.sections[type] && data.sections[type].length > 0) {
-                            data.sections[type].forEach(title => {
-                                const listItem = document.createElement('li');
-                                listItem.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)}: ${title}`;
-                                lectureTutorialList.appendChild(listItem);
+                        if (data.sections && data.sections[type] && data.sections[type].length > 0) {
+                            const typeHeader = document.createElement('h3');
+                            typeHeader.textContent = type.charAt(0).toUpperCase() + type.slice(1) + 's';
+                            sectionsList.appendChild(typeHeader);
+    
+                            data.sections[type].forEach(section => {
+                                const sectionItem = document.createElement('li');
+                                sectionItem.innerHTML = `<strong>${section.title}</strong>`;
+                                
+                                // Create a nested list for modules
+                                const modulesList = document.createElement('ul');
+                                renderModules(section.modules, modulesList);
+                                sectionItem.appendChild(modulesList);
+    
+                                sectionsList.appendChild(sectionItem);
                             });
                         }
                     });
-
-                    // Remove any existing dropdowns
-                    document.querySelectorAll('.section-dropdown').forEach(dropdown => dropdown.remove());
-
-                    // Populate the section dropdown in the clicked subject item
-                    const sectionDropdown = document.createElement('select');
-                    sectionDropdown.classList.add('section-dropdown');
-                    sectionDropdown.innerHTML = ''; // Clear existing options
-                    ['lecture', 'tutorial', 'lab'].forEach(type => {
-                        if (data.sections[type] && data.sections[type].length > 0) {
-                            const optionGroup = document.createElement('optgroup');
-                            optionGroup.label = type.charAt(0).toUpperCase() + type.slice(1);
-                            data.sections[type].forEach(title => {
-                                const option = document.createElement('option');
-                                option.value = title;
-                                option.textContent = title;
-                                optionGroup.appendChild(option);
-                            });
-                            sectionDropdown.appendChild(optionGroup);
-                        }
-                    });
-
-                    // Add the dropdown after the clicked subject item
-                    const activeItem = document.querySelector('.subject-item.active');
-                    if (activeItem) {
-                        activeItem.insertAdjacentElement('afterend', sectionDropdown);
-                    }
-
-                    // Show the section dropdown
-                    sectionDropdown.style.display = 'block';
-
-                    // Show the subject-info section
-                    document.getElementById('subject-info').style.display = 'block';
+    
+                    subjectInfoContainer.style.display = 'block';
+                    fetchEnrolledStudents(subjectCode, yearSemester, campus);
 
                 } else {
+                    console.error('No data received for subject details');
                     alert('Error fetching subject details.');
                 }
             })
@@ -293,6 +389,78 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    function fetchEnrolledStudents(subjectCode, yearSemester, campus) {
+        const year = yearSemester.substring(0, 4);
+        const semester = yearSemester.substring(5);
+        const folderPrefix = `Students-Enrollment-Details`;
+        const url = `/get-enrolled-students?subject_code=${subjectCode}&year=${year}&semester=${semester}&campus=${campus}&folder_prefix=${folderPrefix}`;
+    
+        console.log(`Fetching enrolled students with URL: ${url}`);
+    
+        fetch(url)
+            .then(response => {
+                console.log(`Response status: ${response.status}`);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(`Received data:`, data);
+                const enrolledStudentsList = document.getElementById('enrolled-students');
+                enrolledStudentsList.innerHTML = ''; // Clear existing list
+    
+                // Display the count
+                const countElement = document.createElement('p');
+                countElement.textContent = `Total enrolled students: ${data.count}`;
+                enrolledStudentsList.appendChild(countElement);
+    
+                if (data.students && data.students.length > 0) {
+                    data.students.forEach(student => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${student.StudentID} - ${student.Student_Name}`;
+                        enrolledStudentsList.appendChild(listItem);
+                    });
+    
+                    document.getElementById('subject-info').style.display = 'block';
+                    console.log(`Displayed ${data.count} enrolled students`);
+                } else {
+                    console.log('No enrolled students found');
+                    enrolledStudentsList.innerHTML += '<li>No enrolled students found</li>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching enrolled students:', error);
+                document.getElementById('enrolled-students').innerHTML = `<li>Error fetching enrolled students: ${error.message}</li>`;
+            });
+    }
+
+    function renderModules(modules, parentElement) {
+        modules.forEach(module => {
+            const moduleItem = document.createElement('li');
+            moduleItem.innerHTML = `
+                Day: ${module.day}<br>
+                From: ${module.from}<br>
+                To: ${module.to}<br>
+                Lecturer/Tutor name: ${module.name}<br>
+                Student limit: ${module.limit}<br>
+                Delivery mode: ${module.mode}<br>
+                Location: ${module.location.building}, ${module.location.level}, ${module.location.classroom}
+            `;
+    
+            // If this module has sub-modules, render them recursively
+            if (module.modules && module.modules.length > 0) {
+                const subModulesList = document.createElement('ul');
+                renderModules(module.modules, subModulesList);
+                moduleItem.appendChild(subModulesList);
+            }
+    
+            parentElement.appendChild(moduleItem);
+        });
+    }
+
     let currentSubjectInfo = {}; // This will store the current subject info
 
     // Add click event to load subject details
@@ -300,44 +468,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (event.target && event.target.classList.contains('subject-item')) {
             // Remove active class from all other subject items
             document.querySelectorAll('.subject-item').forEach(item => item.classList.remove('active'));
-
             event.target.classList.add('active');
-
-            // Extract details from the clicked subject item
+    
             const subjectCode = event.target.dataset.subjectCode;
-            const subjectName = event.target.textContent.trim().substring(11); // Adjust if needed
-            const coordinator = event.target.dataset.coordinator;
-            const campus = event.target.dataset.campus;
-
-            // Check the extracted values
-            // console.log('Extracted Subject Code:', subjectCode);
-            // console.log('Extracted Subject Name:', subjectName);
-            // console.log('Extracted Coordinator:', coordinator);
-            // console.log('Extracted Campus:', campus);
-
-            // Split year and semester
-            const year = document.getElementById('year-semester').value.substring(0, 4);
-            const semester = document.getElementById('year-semester').value.substring(5);
-
-            // Store extracted information
-            currentSubjectInfo = {
-                subjectCode: subjectCode,
-                subjectName: subjectName,
-                coordinator: coordinator,
-                campus: campus,
-                year: year,
-                semester: semester
-            };
-
-            // console.log('Clicked subject details:', currentSubjectInfo);
-            // console.log('Clicked subject code:', subjectCode);
-            // console.log('semster:', semester);
-
-            const selectedValue = document.getElementById('year-semester').value; // Get the selected year and semester
-            if (subjectCode && selectedValue) {
-                loadSubjectDetails(subjectCode, selectedValue);
+            const yearSemester = yearSemesterSelect.value;
+            const campus = campusSelect.value;
+    
+            if (subjectCode && yearSemester && campus) {
+                loadSubjectDetails(subjectCode, yearSemester, campus);
             } else {
-                alert('Subject code or year/semester is missing.');
+                alert('Subject code, year/semester, or campus is missing.');
             }
         }
     });
@@ -352,6 +492,73 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('No subject selected. Please select a subject to edit.');
         }
     });
+
+    // Function to populate year and semester dropdowns
+    function populateYearSemesterDropdowns() {
+        const currentYear = new Date().getFullYear();
+        const semesters = ['Semester1', 'Winter', 'Semester2', 'Summer'];
+
+        for (let i = currentYear - 5; i <= currentYear + 1; i++) {
+            fromYearSelect.add(new Option(i, i));
+            toYearSelect.add(new Option(i, i));
+        }
+
+        semesters.forEach(semester => {
+            fromSemesterSelect.add(new Option(semester, semester));
+            toSemesterSelect.add(new Option(semester, semester));
+        });
+    }
+    
+    populateYearSemesterDropdowns();
+
+    // Show inherit dialog
+    inheritBtn.addEventListener('click', function() {
+        inheritDialog.style.display = 'block';
+        addYearSemesterContainer.style.display = 'none';
+    });
+
+    // Hide inherit dialog
+    cancelInheritBtn.addEventListener('click', function() {
+        inheritDialog.style.display = 'none';
+    });
+
+    // Handle inherit confirmation
+    confirmInheritBtn.addEventListener('click', function() {
+        const fromYear = fromYearSelect.value;
+        const fromSemester = fromSemesterSelect.value;
+        const toYear = toYearSelect.value;
+        const toSemester = toSemesterSelect.value;
+
+        // Send request to server to perform the inheritance
+        fetch('/inherit_subjects', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                fromYear: fromYear,
+                fromSemester: fromSemester,
+                toYear: toYear,
+                toSemester: toSemester
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Subjects inherited successfully!');
+                // Refresh the subject list or update the UI as needed
+            } else {
+                alert('Failed to inherit subjects: ' + data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred while inheriting subjects.');
+        });
+
+        inheritDialog.style.display = 'none';
+    });
+
 
 
 });

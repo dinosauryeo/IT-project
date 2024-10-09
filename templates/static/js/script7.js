@@ -150,52 +150,102 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
-
-
-
+    // Fetch existing subject data
+    const urlParams = new URLSearchParams(window.location.search);
+    let year = urlParams.get('year');
+    let semester = urlParams.get('semester');
+    let subjectCode = urlParams.get('code');
+    let campus = urlParams.get('campus');
 
     const subjectData = JSON.parse(sessionStorage.getItem('subjectData'));
-
     if (subjectData) {
-        console.log('Editing subject:', subjectData);
-        
-        // Populate the edit form with the retrieved data
-        document.getElementById('edit-subject-code').value = subjectData.subjectCode || 'N/A';
-        document.getElementById('edit-subject-name').value = subjectData.subjectName || 'N/A';
-        document.getElementById('edit-coordinator').value = subjectData.coordinator || 'N/A';
-        
-        // Ensure year and semester dropdowns have matching options
-        const yearDropdown = document.getElementById('edit-year');
-        const semesterDropdown = document.getElementById('edit-semester');
-        const campusDropdown = document.getElementById('edit-campus');
-    
-        // Trim the values to avoid extra whitespace issues
-        const year = (subjectData.year || '').trim();
-        const semester = (subjectData.semester || '').trim();
-        const campus = (subjectData.campus || '').trim();
-    
-        // Set the value of the year dropdown
-        Array.from(yearDropdown.options).forEach(option => {
-            if (option.value.trim() === year) {
-                option.selected = true;
-            }
-        });
-
-        // Set the value of the semester dropdown
-        Array.from(semesterDropdown.options).forEach(option => {
-            if (option.value.trim() === semester) {
-                option.selected = true;
-            }
-        });
-
-        // Set the value of the campus dropdown
-        Array.from(campusDropdown.options).forEach(option => {
-            if (option.value.trim() === campus) {
-                option.selected = true;
-            }
-        });
-        
+        year = year || subjectData.year;
+        semester = semester || subjectData.semester;
+        subjectCode = subjectCode || subjectData.subjectCode;
+        campus = campus || subjectData.campus;
     }
+
+    console.log('Parameters:', { year, semester, subjectCode, campus });
+    if (year && semester && subjectCode && campus) {
+        fetch(`/get_subject_data?year=${year}&semester=${semester}&code=${subjectCode}&campus=${campus}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetched subject data:', data);
+                populateForm(data);
+            })
+            .catch(error => {
+                console.error('Error fetching subject data:', error);
+                alert('Failed to load subject data. Please try again.');
+            });
+    } else {
+        const missingParams = [];
+        if (!year) missingParams.push('year');
+        if (!semester) missingParams.push('semester');
+        if (!subjectCode) missingParams.push('subject code');
+        if (!campus) missingParams.push('campus');
+        
+        console.error('Missing required parameters:', missingParams.join(', '));
+        alert(`Missing required information to load subject data: ${missingParams.join(', ')}`);
+    }
+
+function populateForm(data) {
+    // Populate basic subject info
+    document.getElementById('edit-year').value = data.year;
+    document.getElementById('edit-semester').value = data.semester;
+    document.getElementById('edit-campus').value = data.campus;
+    document.getElementById('edit-coordinator').value = data.coordinator;
+    document.getElementById('edit-subject-name').value = data.subjectName;
+    document.getElementById('edit-subject-code').value = data.subjectCode;
+
+    // Fetch locations for the campus
+    fetchLocationsForCampus(data.campus).then(locations => {
+        // Populate sections
+        if (data.sections) {
+            ['lecture', 'tutorial', 'lab'].forEach(sectionType => {
+                const sectionContainer = document.getElementById(`edit-${sectionType}-sections`);
+                sectionContainer.innerHTML = ''; // Clear existing sections
+                sectionCounters[sectionType] = 0; // Reset counter
+
+                if (data.sections[sectionType] && data.sections[sectionType].length > 0) {
+                    data.sections[sectionType].forEach((section, sectionIndex) => {
+                        const sectionDiv = addSectionToCategory(sectionType);
+                        if (section.modules && section.modules.length > 0) {
+                            section.modules.forEach((module, moduleIndex) => {
+                                const moduleDiv = addModule(sectionDiv, sectionType);
+                                populateModule(moduleDiv, module, sectionType, sectionIndex + 1, moduleIndex + 1, locations);
+                            });
+                        }
+                    });
+                } else {
+                    // If no sections of this type, add an empty one
+                    addSectionToCategory(sectionType);
+                }
+            });
+        }
+    }).catch(error => {
+        console.error('Error fetching locations:', error);
+        alert('Failed to load location data. Please try again.');
+    });
+}
+
+function populateModule(moduleDiv, moduleData, sectionType, sectionNumber, moduleNumber, locations) {
+    moduleDiv.querySelector('.module-title').textContent = `${sectionType.charAt(0).toUpperCase() + sectionType.slice(1)} ${sectionNumber}.${moduleNumber}`;
+    moduleDiv.querySelector(`select[name="${sectionType}-day"]`).value = moduleData.day;
+    moduleDiv.querySelector(`select[name="${sectionType}-from"]`).value = moduleData.from;
+    moduleDiv.querySelector(`select[name="${sectionType}-to"]`).value = moduleData.to;
+    moduleDiv.querySelector(`input[name="${sectionType}-limit"]`).value = moduleData.limit;
+    moduleDiv.querySelector(`input[name="${sectionType}-name"]`).value = moduleData.name;
+    moduleDiv.querySelector(`select[name="${sectionType}-mode"]`).value = moduleData.mode;
+
+    // Populate location data
+    populateLocationDropdowns(moduleDiv, moduleData.location, locations);
+}
+
     
 
 
@@ -222,7 +272,6 @@ function addSectionToCategory(sectionType) {
     `;
 
     categoryDiv.appendChild(sectionDiv);
-    populateTimeDropdowns(); // Populate time dropdowns after adding a new section
 
     // Handle delete section button
     sectionDiv.querySelector('.delete-section-btn').addEventListener('click', function() {
@@ -239,6 +288,8 @@ function addSectionToCategory(sectionType) {
     sectionDiv.querySelector('.add-module-btn').addEventListener('click', function() {
         addModule(sectionDiv, sectionType);
     });
+
+    return sectionDiv;
 }
 
 // Function to add a module within a section
@@ -278,12 +329,30 @@ function addModule(sectionDiv, sectionType) {
         </div>
         <div class="select-row">
             <input type="text" id="${sectionType}-name-${sectionNumber}-${moduleCount}" name="${sectionType}-name" placeholder="${sectionType === 'lecture' ? 'Lecturer' : 'Tutor'}">
-            <input type="text" id="${sectionType}-location-${sectionNumber}-${moduleCount}" name="${sectionType}-location" placeholder="Location">
+            <select id="${sectionType}-building-${sectionNumber}-${moduleCount}" name="${sectionType}-building" class="location-dropdown">
+                <option value="" disabled selected>Select Building</option>
+            </select>
+            <select id="${sectionType}-level-${sectionNumber}-${moduleCount}" name="${sectionType}-level" class="location-dropdown">
+                <option value="" disabled selected>Select Level</option>
+            </select>
+            <select id="${sectionType}-classroom-${sectionNumber}-${moduleCount}" name="${sectionType}-classroom" class="location-dropdown">
+                <option value="" disabled selected>Select Classroom</option>
+            </select>
         </div>
     `;
 
     sectionDiv.appendChild(moduleDiv);
     populateTimeDropdowns(); // Populate time dropdowns after adding a new module
+    
+    // Populate location dropdowns for the new module
+    const campus = document.getElementById('edit-campus').value || document.getElementById('campus').value;
+    if (campus) {
+        fetchLocationsForCampus(campus).then(locations => {
+            populateLocationDropdowns(moduleDiv, null, locations);
+        }).catch(error => {
+            console.error('Error fetching locations:', error);
+        });
+    }
 
     // Handle delete module button
     moduleDiv.querySelector('.delete-module-btn').addEventListener('click', function() {
@@ -293,6 +362,79 @@ function addModule(sectionDiv, sectionType) {
             updateModuleNumbers(sectionDiv, sectionType);
         }
     });
+
+    return moduleDiv;    
+}
+
+async function populateLocationDropdowns(moduleDiv, existingData = null, locations = null) {
+    const campus = document.getElementById('edit-campus').value || document.getElementById('campus').value;
+    if (!campus) {
+        alert('Please select a campus first');
+        return;
+    }
+
+    const buildingSelect = moduleDiv.querySelector('select[name$="-building"]');
+    const levelSelect = moduleDiv.querySelector('select[name$="-level"]');
+    const classroomSelect = moduleDiv.querySelector('select[name$="-classroom"]');
+
+    try {
+        if (!locations) {
+            const response = await fetch(`/get_locations?campus=${campus}`);
+            locations = await response.json();
+        }
+
+        // Function to populate a select element while preserving existing selection
+        const populateSelect = (select, options, existingValue) => {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="" disabled selected>Select</option>';
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+            select.value = existingValue || currentValue || '';
+        };
+
+        // Populate buildings
+        const buildings = [...new Set(locations.map(loc => loc.building))];
+        populateSelect(buildingSelect, buildings, existingData?.building);
+
+        // Function to update levels
+        const updateLevels = () => {
+            const selectedBuilding = buildingSelect.value;
+            const levels = [...new Set(locations
+                .filter(loc => loc.building === selectedBuilding)
+                .map(loc => loc.level))];
+            populateSelect(levelSelect, levels, existingData?.level);
+        };
+
+        // Function to update classrooms
+        const updateClassrooms = () => {
+            const selectedBuilding = buildingSelect.value;
+            const selectedLevel = levelSelect.value;
+            const classrooms = locations
+                .filter(loc => loc.building === selectedBuilding && loc.level === selectedLevel)
+                .map(loc => loc.classroom);
+            populateSelect(classroomSelect, classrooms, existingData?.classroom);
+        };
+
+        // Event listener for building selection
+        buildingSelect.addEventListener('change', () => {
+            updateLevels();
+            updateClassrooms();
+        });
+
+        // Event listener for level selection
+        levelSelect.addEventListener('change', updateClassrooms);
+
+        // Initial population of levels and classrooms
+        updateLevels();
+        updateClassrooms();
+
+    } catch (error) {
+        console.error('Error populating location dropdowns:', error);
+    }
 }
 
 // Function to update the numbering of sections
@@ -316,6 +458,19 @@ function updateModuleNumbers(sectionDiv, sectionType) {
     });
 }
 
+function fetchLocationsForCampus(campus) {
+    return fetch(`/get_locations?campus=${campus}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Fetched locations:', data);
+            return data;
+        })
+        .catch(error => {
+            console.error('Error fetching locations:', error);
+            return [];
+        });
+}
+
 document.getElementById('edit-subject').addEventListener('click', function () {
     const form = document.getElementById('editSubjectForm');
     const year = form.querySelector('#edit-year').value;
@@ -325,54 +480,57 @@ document.getElementById('edit-subject').addEventListener('click', function () {
     const subjectName = form.querySelector('#edit-subject-name').value;
     const subjectCode = form.querySelector('#edit-subject-code').value;
 
-    // Gather section data
-    const sections = ['lecture', 'tutorial', 'lab'].reduce((acc, type) => {
-        const sectionDivs = document.querySelectorAll(`#${type}-sections .section`);
-        acc[type] = Array.from(sectionDivs).map(sectionDiv => {
-            return {
-                title: sectionDiv.querySelector('.section-title').textContent,
-                modules: Array.from(sectionDiv.querySelectorAll('.module')).map(moduleDiv => ({
-                    day: moduleDiv.querySelector(`select[name="${type}-day"]`).value,
-                    from: moduleDiv.querySelector(`select[name="${type}-from"]`).value,
-                    to: moduleDiv.querySelector(`select[name="${type}-to"]`).value,
-                    limit: moduleDiv.querySelector(`input[name="${type}-limit"]`).value,
-                    name: moduleDiv.querySelector(`input[name="${type}-name"]`).value,
-                    location: moduleDiv.querySelector(`input[name="${type}-location"]`).value,
-                    mode: moduleDiv.querySelector(`select[name="${type}-mode"]`).value,
-                }))
-            };
+        // Gather section data
+        const sections = ['lecture', 'tutorial', 'lab'].reduce((acc, type) => {
+            const sectionDivs = document.querySelectorAll(`#edit-${type}-sections .section`);
+            acc[type] = Array.from(sectionDivs).map(sectionDiv => {
+                return {
+                    title: sectionDiv.querySelector('.section-title').textContent,
+                    modules: Array.from(sectionDiv.querySelectorAll('.module')).map(moduleDiv => ({
+                        day: moduleDiv.querySelector(`select[name="${type}-day"]`).value,
+                        from: moduleDiv.querySelector(`select[name="${type}-from"]`).value,
+                        to: moduleDiv.querySelector(`select[name="${type}-to"]`).value,
+                        limit: moduleDiv.querySelector(`input[name="${type}-limit"]`).value,
+                        name: moduleDiv.querySelector(`input[name="${type}-name"]`).value,
+                        mode: moduleDiv.querySelector(`select[name="${type}-mode"]`).value,
+                        location: {
+                            building: moduleDiv.querySelector(`select[name="${type}-building"]`).value,
+                            level: moduleDiv.querySelector(`select[name="${type}-level"]`).value,
+                            classroom: moduleDiv.querySelector(`select[name="${type}-classroom"]`).value
+                        }
+                    }))
+                };
+            });
+            return acc;
+        }, {});
+
+        const subjectData = {
+            year,
+            semester,
+            campus,
+            coordinator,
+            subjectName,
+            subjectCode,
+            sections
+        };
+
+        fetch('/editsubject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(subjectData)
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Subject updated successfully!');
+                // Optionally redirect or clear form
+            } else {
+                alert('Error updating subject: ' + data.message);
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Error updating subject.');
         });
-        return acc;
-    }, {});
-
-    const subjectData = {
-        year,
-        semester,
-        campus,
-        coordinator,
-        subjectName,
-        subjectCode,
-        sections
-    };
-
-    fetch('/editsubject', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(subjectData)
-    }).then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert('Subject updated successfully!');
-            // Optionally redirect or clear form
-        } else {
-            alert('Error updating subject: ' + data.message);
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-        alert('Error updating subject.');
-    });
 });
 
-//现在基本信息可以改了，也可以overwrite但是下面的section修改和读取都还有问题。

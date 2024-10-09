@@ -129,90 +129,117 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Populate the year dropdown with years from 2000 to current year + 1
     const yearSelect = document.getElementById('year');
-    const currentYear = new Date().getFullYear();
-    for (let year = 2000; year <= currentYear + 1; year++) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearSelect.appendChild(option);
+    if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let year = 2000; year <= currentYear + 1; year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+    } else {
+        console.error('Year select element not found');
     }
 
     // Populate time dropdowns after DOM is loaded
     populateTimeDropdowns();
 
-
     // Add event listeners for each section type
-    document.getElementById('add-Lecture').addEventListener('click', function () {
-        addSectionToCategory('lecture');
-    });
+    const addLectureBtn = document.getElementById('add-Lecture');
+    const addTutorialBtn = document.getElementById('add-Tutorial');
+    const addLabBtn = document.getElementById('add-Lab');
 
-    document.getElementById('add-Tutorial').addEventListener('click', function () {
-        addSectionToCategory('tutorial');
-    });
-
-    document.getElementById('add-Lab').addEventListener('click', function () {
-        addSectionToCategory('lab');
-    });
-    // Function to handle form submission
-    document.getElementById('create-subject').addEventListener('click', function () {
-        const form = document.getElementById('createSubjectForm');
-        const year = form.querySelector('#year').value;
-        const semester = form.querySelector('#semester').value;
-        const campus = form.querySelector('#campus').value;
-        const coordinator = form.querySelector('#coordinator').value;
-        const subjectName = form.querySelector('#subject-name').value;
-        const subjectCode = form.querySelector('#subject-code').value;
-    
-        // Gather section data
-        const sections = ['lecture', 'tutorial', 'lab'].reduce((acc, type) => {
-            const sectionDivs = document.querySelectorAll(`#${type}-sections .section`);
-            acc[type] = Array.from(sectionDivs).map(sectionDiv => {
-                return {
-                    title: sectionDiv.querySelector('.section-title').textContent,
-                    modules: Array.from(sectionDiv.querySelectorAll('.module')).map(moduleDiv => ({
-                        day: moduleDiv.querySelector(`select[name="${type}-day"]`).value,
-                        from: moduleDiv.querySelector(`select[name="${type}-from"]`).value,
-                        to: moduleDiv.querySelector(`select[name="${type}-to"]`).value,
-                        limit: moduleDiv.querySelector(`input[name="${type}-limit"]`).value, // Get the student limit
-                        name: moduleDiv.querySelector(`input[name="${type}-name"]`).value,
-                        location: moduleDiv.querySelector(`input[name="${type}-location"]`).value,
-                        mode: moduleDiv.querySelector(`select[name="${type}-mode"]`).value,
-                    }))
-                };
-            });
-            return acc;
-        }, {});
-
-        const subjectData = {
-            year,
-            semester,
-            campus,
-            coordinator,
-            subjectName,
-            subjectCode,
-            sections
-        };
-
-        fetch('/createsubject', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(subjectData)
-        }).then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('Subject created successfully!');
-                // Optionally redirect or clear form
-            } else {
-                alert('Error creating subject: ' + data.message);
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-            alert('Error creating subject.');
+    if (addLectureBtn) {
+        addLectureBtn.addEventListener('click', function () {
+            addSectionToCategory('lecture');
         });
-        
-    });
+    }
+
+    if (addTutorialBtn) {
+        addTutorialBtn.addEventListener('click', function () {
+            addSectionToCategory('tutorial');
+        });
+    }
+
+    if (addLabBtn) {
+        addLabBtn.addEventListener('click', function () {
+            addSectionToCategory('lab');
+        });
+    }
+
+    // Function to handle form submission
+    const createSubjectBtn = document.getElementById('create-subject');
+    if (createSubjectBtn) {
+        createSubjectBtn.addEventListener('click', function () {
+            const form = document.getElementById('createSubjectForm');
+            if (!form) {
+                console.error('Create subject form not found');
+                return;
+            }
+
+            const year = form.querySelector('#year')?.value;
+            const semester = form.querySelector('#semester')?.value;
+            const campus = form.querySelector('#campus')?.value;
+            const coordinator = form.querySelector('#coordinator')?.value;
+            const subjectName = form.querySelector('#subject-name')?.value;
+            const subjectCode = form.querySelector('#subject-code')?.value;
+
+            // Gather section data
+            const sections = ['lecture', 'tutorial', 'lab'].reduce((acc, type) => {
+                const sectionDivs = document.querySelectorAll(`#${type}-sections .section`);
+                acc[type] = Array.from(sectionDivs).map(sectionDiv => {
+                    return {
+                        title: sectionDiv.querySelector('.section-title')?.textContent,
+                        modules: Array.from(sectionDiv.querySelectorAll('.module')).map(moduleDiv => ({
+                            day: moduleDiv.querySelector(`select[name="${type}-day"]`)?.value,
+                            from: moduleDiv.querySelector(`select[name="${type}-from"]`)?.value,
+                            to: moduleDiv.querySelector(`select[name="${type}-to"]`)?.value,
+                            limit: moduleDiv.querySelector(`input[name="${type}-limit"]`)?.value,
+                            name: moduleDiv.querySelector(`input[name="${type}-name"]`)?.value,
+                            mode: moduleDiv.querySelector(`select[name="${type}-mode"]`)?.value,
+                            location: {
+                                building: moduleDiv.querySelector(`select[name="${type}-building"]`)?.value,
+                                level: moduleDiv.querySelector(`select[name="${type}-level"]`)?.value,
+                                classroom: moduleDiv.querySelector(`select[name="${type}-classroom"]`)?.value
+                            }
+                        }))
+                    };
+                });
+                return acc;
+            }, {});
+
+            const subjectData = {
+                year,
+                semester,
+                campus,
+                coordinator,
+                subjectName,
+                subjectCode,
+                sections
+            };
+
+            fetch('/createsubject', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(subjectData)
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Subject created successfully!');
+                    // Optionally redirect or clear form
+                } else {
+                    alert('Error creating subject: ' + data.message);
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Error creating subject.');
+            });
+        });
+    } else {
+        console.error('Create subject button not found');
+    }
 
 
 });
@@ -249,10 +276,6 @@ function addSectionToCategory(sectionType) {
     });
 }
 
-// Show the Create Subject page when "Add Subject" is clicked
-document.querySelector('button[onclick="addSubject()"]').addEventListener('click', function () {
-    showPage('create-subject');
-});
 
 
 // Function to add sections to the respective bar
@@ -441,5 +464,4 @@ function updateModuleNumbers(sectionDiv, sectionType) {
         moduleTitle.textContent = `${sectionType.charAt(0).toUpperCase() + sectionType.slice(1)} ${sectionNumber}.${moduleCount}`;
     });
 }
-
 

@@ -105,9 +105,13 @@ body {
 }
 
 .right-bar {
+    position: relative;
     width: 65%;  /* Makes the right bar wider */
     background-color: #f0f0f0;
     max-height: 100%;
+}
+.right-bar-section {
+    position: relative;
 }
 
 .subjects-text h3 {
@@ -313,4 +317,85 @@ span {
     height: 100%;
     background-color: rgba(0,0,0,0.5);
     z-index: 1000;
+}
+
+#inherit-btn {
+    margin-bottom: 10px;
+}
+
+#add-subject-btn {
+    margin-top: 10px;
+}
+
+#year-semester {
+    padding: 5px;
+}
+
+
+.dialog-header {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+.dialog-content {
+    padding: 15px;
+}
+
+.dialog-buttons {
+    margin-top: 15px;
+    text-align: right;
+}
+
+h4{
+    font-size: 40px;
+    margin: 5px;
+    color: #000000;
+}
+
+#campus-select{
+    padding: 5px;
+}
+
+
+
+
+#lecture-tutorial-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#lecture-tutorial-list h3 {
+    margin-top: 20px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+#lecture-tutorial-list li {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    white-space: pre-line;  /* This preserves line breaks */
+}
+
+#lecture-tutorial-list li strong {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+#lecture-tutorial-list li br {
+    display: block;
+    content: "";
+    margin-top: 5px;
 }

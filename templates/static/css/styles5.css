@@ -1,0 +1,689 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    background-color: #ffffff;
+    color: white;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo img {
+    height: 80px;
+}
+
+.title {
+    color: #000000;
+    font-size: 24px;
+    text-align: left;
+    flex-grow: 1;
+}
+
+/* .profile {
+    text-align: right;
+    display: flex;
+    align-items: center;
+}
+
+.profile span {
+    margin-right: 10px;
+}
+
+.profile-pic {
+    height: 40px;
+    border-radius: 50%;
+} */
+
+.navbar {
+    background-color: #ffd0bf;
+    position: relative;
+    padding: 0px;
+    box-shadow: 0px 2px 5px rgba(255, 255, 255, 0.1);
+}
+
+.navbar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px; /* Height of the border */
+    background: linear-gradient(to right, rgb(236, 73, 19), rgb(175, 22, 175)); /* Gradient */
+}
+
+.navbar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.navbar li {
+    padding: 20px;
+    cursor: pointer;
+    background-color:#ffd0bf;
+    text-align: center;
+    margin-right: 0px;
+    width: 60px;
+}
+
+.navbar li.logout {
+    margin-left: auto; /* Pushes the "Logout" button to the right */
+}
+
+.navbar li:hover {
+    background-color: #f96c25;
+}
+
+
+.navbar li.active {
+    background-color: #f96c25; 
+}
+
+.content {
+    padding: 20px;
+    background-color: #fff;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+
+
+.container {
+    display: flex;
+    /* height: calc(100vh - 120px);   Adjust based on header and footer height */
+    gap: 20px;  /* Adds a gap between the bars */
+}
+
+.left-bar, .right-bar {
+    padding: 20px;
+    overflow-y: auto;  /* Enables scrolling */
+    border-radius: 15px;  /* Adds rounded corners */
+}
+/* Left bar container */
+.left-bar {
+    width: 30%;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+/* Student items */
+.student-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.student-item.collision {
+    background-color: #f2dede;
+}
+
+
+.left-bar {
+    width: 35%;  /* Makes the left bar thinner */
+    background-color: #f0f0f0;
+    max-height: 100%;
+}
+
+.right-bar {
+    width: 65%;  /* Makes the right bar wider */
+    background-color: #f0f0f0;
+    max-height: 100%;
+}
+/* Right bar container */
+.right-bar {
+    width: 65%;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+/* Student details */
+.student-details {
+    margin-bottom: 20px;
+}
+
+/* Timetable container */
+.timetable-container {
+    margin-top: 20px;
+}
+
+/* Timetable table */
+.timetable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.timetable th, .timetable td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.timetable th {
+    background-color: #f0f0f0;
+}
+
+.timetable td {
+    height: 50px;
+}
+
+.lecture {
+    background-color: #e8f4f8;
+    font-weight: bold;
+}
+
+.tutorial {
+    background-color: #f4f8e8;
+    font-weight: bold;
+}
+
+.export-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.export-buttons button {
+    padding: 10px;
+    margin-left: 10px;
+    background-color: #f0c040;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+
+.subjects-text h3 {
+    text-align: center;
+    background: linear-gradient(to right, rgb(236, 73, 19), rgb(175, 22, 175));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 30px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+.subject-list, .calendar, .right-bar h3 {
+    margin-top: 20px;
+}
+
+#subject-dropdown {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#enrolled-students, #lecture-tutorial-list {
+    list-style: none;
+    padding: 0;
+}
+
+#enrolled-students li, #lecture-tutorial-list li {
+    padding: 10px;
+    background-color: #f0f0f0;
+    margin-top: 5px;
+    border-radius: 5px;
+}
+
+
+
+
+
+/* Add placeholder color */
+select::placeholder, input::placeholder {
+    color: #888;
+}
+
+/* Styling for select and input fields */
+select, input {
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    margin-right: 8px; /* Space between elements */
+}
+
+
+
+
+/* Style for module title */
+.module-title {
+    font-size: 15px bold;
+}
+
+
+
+#edit-subject {
+    width: 120px; /* Adjust the width as needed */
+    padding: 10px; /* Adjust padding for desired height */
+    text-align: center; /* Center text within the button */
+    margin: 0; /* Reset any default margin */
+    float: right; /* Align to the right */
+    background-color: #f0f0f0; /* Button background color */
+    color: rgb(0, 0, 0); /* Text color */
+    border-radius: 5px; /* Rounded corners */
+    border-width: 1px;
+    border-color: #000000;
+}
+
+#edit-subject:hover {
+    background-color: #ccc; /* Darker background on hover */
+}
+
+.student-entry {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer; /* 让鼠标悬停时显示指针，表明可点击 */
+    transition: background-color 0.3s;
+    background-color: lightblue; /* 背景色 */
+    border-radius: 15px; /* 圆角半径 */
+}
+
+.student-entry:hover {
+    background-color: #f0f0f0; /* 鼠标悬停时改变背景颜色 */
+}
+
+
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.filter-container{
+    align-items: flex-start;
+}
+
+
+
+/*Hamburger Menu*/
+.header {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.hamburger-menu {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    left: auto;
+    transform: translateY(-50%);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    color: #333; /* Adjust color as needed */
+}
+
+.hamburger-menu i {
+    display: block;
+}
+
+.menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+}
+
+.menu-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.menu-content ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.menu-content li {
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+.menu-content li:hover {
+    background-color: #f0f0f0;
+}
+
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    transition: 0.3s;
+    z-index: 1001;
+    right: -250px;
+    left: auto;
+}
+
+.side-menu.active {
+    right: 0;
+}
+
+.side-menu ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 60px;
+}
+
+.side-menu li {
+    padding: 15px 20px;
+    cursor: pointer;
+}
+
+.side-menu li:hover {
+    background-color: #f0f0f0;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+#shuffle-select {
+    -webkit-appearance: button; /* For WebKit */
+    -moz-appearance: button;    /* For Mozilla */
+    appearance: button;         /* Standard syntax */
+    border: 1px solid gray;     /* Customizable border */
+    padding: 5px 10px;          /* Padding to make it look like a button */
+    text-align: left;           /* Align text inside the select */
+    cursor: pointer;            /* Change cursor to pointer to indicate it's clickable */
+}
+
+#shuffle-select:focus {
+    outline: none;              /* Removes the outline to keep the button appearance on focus */
+}
+
+
+/* Style for the student list container */
+#student-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Style for each student list item */
+#student-list li {
+    background-color: #a8b0b0; /* Light milky blue */
+    border-radius: 10px; /* Rounded corners */
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    cursor: pointer; /* Changes cursor to hand icon on hover */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+    font-weight: bold;
+}
+
+/* Hover effect for list items */
+#student-list li:hover {
+    font-weight: bold;
+    color: #fff;
+    background-color: #304038; /* Slightly darker blue on hover */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+}
+
+/* Active state for list items (when clicked) */
+#student-list li:active {
+    background-color: #182028; /* Even darker blue when clicked */
+    transform: translateY(1px); /* Slight push down effect when clicked */
+}
+
+/* Style for the student details container */
+.student-details {
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.student-details h3 {
+    font-size: 50px;
+    color: #305868;
+    margin-top: 0;
+}
+
+.student-details p {
+    margin: 5px 0;
+}
+
+
+
+
+.search-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#search-student {
+    margin-top: 2px;
+    flex-grow: 1;
+    padding: 9px;
+    border: 1px solid #ccc;
+    border-right: none; /* Remove right border */
+    border-radius: 5px 0 0 5px;
+}
+
+#search-button, #clear-button {
+    margin-top: 2px;
+    padding: 11px 10px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 70px;
+}
+
+#search-button {
+    background-color: #607C8F;
+    border-radius: 0 5px 5px 0;
+    margin-left: -20px; /* Overlap the input border */
+}
+
+#search-button:hover {
+    background-color: #305868;
+}
+
+#clear-button {
+    background-color: #8e8e8e;
+    margin-left: 10px;
+    border-radius: 5px;
+}
+
+#clear-button:hover {
+    background-color: #484848;
+}
+
+#modify-degree-btn{
+    margin-top: 5px;
+    padding: 10px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    background-color: #8e8e8e;
+    margin-left: 10px;
+    border-radius: 5px;
+}
+
+#modify-degree-btn:hover{
+    background-color: #484848;
+}
+
+#campus-select, #year-semester, #degree-select{
+    width: 320px;
+    margin-bottom: 10px;
+}
+
+.shuffle-container{
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+}
+#shuffle-select{
+    width: 150px;
+    margin-right: -2px;
+    margin-bottom: 10px;
+}
+
+
+
+
+
+
+.timetable {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed; /* This ensures equal column widths */
+}
+
+.timetable th, .timetable td {
+    border: 1px solid #ddd;
+    padding: 0;
+    text-align: center;
+    font-size: 12px;
+    height: 20px; /* Height for each 15-min slot */
+    width: calc((100% - 50px) / 7); /* Equal width for day columns */
+}
+
+.timetable th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.time-cell {
+    width: 50px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.time-cell.empty {
+    border-left: none;
+    border-right: none;
+}
+
+.class-block {
+    position: absolute;
+    width: calc(100% - 4px);
+    left: 1px;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 2px;
+    box-sizing: border-box;
+    border: 1px solid #07283b;
+    border-radius: 2px;
+    
+    /* Centering text */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.class-block span {
+    display: block;
+}
+
+.timetable td {
+    position: relative;
+    vertical-align: top;
+}
+
+.timetable .clash {
+    outline: 2px solid red;
+    z-index: 1;
+    position: relative;
+}
+
+.collision-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(255, 0, 0, 0.3);
+    z-index: 1;
+}
+
+#student-list li.collision {
+    background-color: #ffcccc; /* Light red background */
+    border-color: #ff0000; /* Red border */
+}
