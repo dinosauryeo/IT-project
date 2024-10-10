@@ -987,6 +987,8 @@ def generate_timetable_for_students(database_name):
                                             day = module.get('day')
                                             from_time = module.get('from')
                                             to_time = module.get('to')
+                                            name = module.get('name')
+                                            location = module.get('location')
                                             limit = module.get('limit', None)
 
                                             current_enrollment = module.get('current_enrollment', 0)
@@ -1009,6 +1011,8 @@ def generate_timetable_for_students(database_name):
                                                     'Day': day,
                                                     'From': from_time,
                                                     'To': to_time,
+                                                    'Name': name,
+                                                    'Location': location,
                                                     'Location': module.get('location'),
                                                     'Mode': module.get('mode')
                                                 })
