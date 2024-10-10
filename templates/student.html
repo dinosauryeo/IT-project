@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIT Timetable - Student</title>
     <link rel="stylesheet" href="static/css/styles5.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <!-- Header Section -->
@@ -30,6 +31,7 @@
             <li onclick="loadUploadPage()">Upload</li>
             <li onclick="loadGeneratePage()">Generate</li>
             <li onclick="loadLocationPage()">Add Location</li>
+            <li onclick="loadRegistrationPage()">Register</li>
             <li onclick="logout()">Logout</li>
         </ul>
     </div>
@@ -146,7 +148,6 @@
 
                 <!-- Export Buttons -->
                 <div class="export-buttons">
-                    <button onclick="exportSelected()">Export Selected</button>
                     <button onclick="SendEmailToStudents()">Export All</button>
                 </div>
             </div>

@@ -21,29 +21,146 @@ function logout() {
 function loadLocationPage() {
     window.location.href = '/location';
 }
+function loadRegistrationPage() {
+    window.location.href = '/register';
+}
 
 // 14/09 10:21 modify
 // write send email to student 
-function SendEmailToStudents(){
-    fetch('/send_timetable', {
-        method: 'POST',
+// function SendEmailToStudents(){
+//     fetch('/send_timetable', {
+//         method: 'POST',
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.status === 'success') {
+//             console.log("timetable(fake) sent");
+//             alert("Timetable had been sent");
+//         } 
+//         else {
+//             console.log("timetable failed to send");
+//             alert(data.message);
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//         alert('An error occurred');
+//     });
+// }
+
+
+
+
+// Move these functions outside of DOMContentLoaded
+function exportSelected(studentID) {
+    // Fetch elements directly
+    const yearSemesterSelect = document.getElementById('year-semester');
+    const campusSelect = document.getElementById('campus-select');
+    const degreeSelect = document.getElementById('degree-select');
+    const shuffleSelect = document.getElementById('shuffle-select');
+
+    // Check if all required elements are present
+    if (!yearSemesterSelect || !campusSelect || !degreeSelect || !shuffleSelect) {
+        alert('Some page elements are missing. Please refresh the page and try again.');
+        return;
+    }
+
+    // Check if all required fields have values
+    if (!yearSemesterSelect.value || !campusSelect.value || !degreeSelect.value) {
+        alert('Please select Year-Semester, Campus, and Degree before exporting.');
+        return;
+    }
+
+    const yearSemester = yearSemesterSelect.value;
+    const year = yearSemester.substring(0, 4);
+    const semester = yearSemester.substring(5);
+    const campus = campusSelect.value;
+    const degree = degreeSelect.value;
+
+    // Get the selected student's ID
+    // const selectedStudent = document.querySelector('#student-list li.selected');
+    // if (!selectedStudent) {
+    //     alert('Please select a student first.');
+    //     return;
+    // }
+    // const studentID = selectedStudent.dataset.studentId;
+
+    if (!studentID) {
+        alert('Selected student does not have an ID. Please try selecting the student again.');
+        return;
+    }
+
+    const params = new URLSearchParams({
+        year: year,
+        semester: semester,
+        campus: campus,
+        folder_prefix: 'Timetable',
+        degree_name: degree,
+        sort_method: shuffleSelect.value,
+        student_id: studentID
+    });
+    
+    fetch('/export-one-student-timetable?' + params, {
+        method: 'GET',
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            console.log("timetable(fake) sent");
-            alert("Timetable had been sent");
-        } 
-        else {
-            console.log("timetable failed to send");
-            alert(data.message);
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        return response.text();
+    })
+    .then(data => {
+        alert('Timetable exported successfully!');
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred');
+        console.error('Error exporting timetable:', error);
+        alert('Error exporting timetable: ' + error.message);
     });
 }
+
+function SendEmailToStudents() {
+    const yearSemesterSelect = document.getElementById('year-semester');
+    const campusSelect = document.getElementById('campus-select');
+    const degreeSelect = document.getElementById('degree-select');
+    const shuffleSelect = document.getElementById('shuffle-select');
+
+    if (!yearSemesterSelect || !campusSelect || !degreeSelect || !shuffleSelect) {
+        alert('Page is not fully loaded. Please try again.');
+        return;
+    }
+
+    const yearSemester = yearSemesterSelect.value;
+    const year = yearSemester.substring(0, 4);
+    const semester = yearSemester.substring(5);
+    const campus = campusSelect.value;
+    const degree = degreeSelect.value;
+
+    const params = new URLSearchParams({
+        year: year,
+        semester: semester,
+        campus: campus,
+        folder_prefix: 'Timetable',
+        degree_name: degree,
+        sort_method: shuffleSelect.value
+    });
+
+    fetch('/export-all-student-timetable?' + params, {
+        method: 'GET',
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.text();
+    })
+    .then(data => {
+        alert('All timetables exported successfully!');
+    })
+    .catch(error => {
+        alert('Error exporting timetables: ' + error.message);
+    });
+}
+
 
 //Hover event for Home link
 document.getElementById('home-link').addEventListener('click', function() {
@@ -260,6 +377,10 @@ document.addEventListener('DOMContentLoaded', function () {
             <p>${degreeSelect.value}</p>
             <p>Course Date: ${student['Course Start Date']} - ${student['Course End Date']}</p>
             <p>Enrolled Subjects: ${student.Enrolled_Subjects.join(', ')}</p>
+            <div class="export-buttons">
+                <button onclick="exportSelected('${student.StudentID}')">Export Selected</button>
+                
+            </div>
         `;
         fetchStudentTimetable(student.StudentID, null);
     }

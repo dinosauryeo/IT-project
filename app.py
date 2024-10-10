@@ -20,6 +20,7 @@ import logging
 import re
 import traceback
 from download import download
+from flask_bcrypt import Bcrypt
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -38,6 +39,7 @@ print("Template Folder:", app.template_folder)
 # Set upload folder path
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+bcrypt = Bcrypt(app)
 
 # Ensure the upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
@@ -82,6 +84,31 @@ def logout_page():
     session.pop('logged_in', None)
     session.pop('username', None)
     return render_template('Login.html')
+
+#10/10 15:42 last modify
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    client = mongoDB.login()
+    db = client['IT-project']
+    users_collection = db['User-data']
+
+    if request.method == 'POST':
+        data = request.json
+        existing_user = users_collection.find_one({'$or': [{'username': data['username']}, {'email': data['email']}]})
+        
+        if existing_user:
+            return jsonify({'status': 'error', 'message': 'Username or email already exists'})
+        
+        hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+        new_user = {
+            'username': data['username'],
+            'email': data['email'],
+            'password': hashed_password
+        }
+        users_collection.insert_one(new_user)
+        return jsonify({'status': 'success', 'message': 'User registered successfully'})
+    
+    return render_template('Registration.html')
 
 # Route to handle login requests
 @app.route('/login', methods=['POST'])
@@ -895,28 +922,28 @@ def get_enrolled_students_timetable():
 '''
 return student id and student name and send it to front end
 '''
-@app.route('/students_timetable', methods=['GET'])
-def get_students():
-    client = mongoDB.login()
-    db = client['2019_Semester1']  # 选择数据库
-    collection = db['Students-Enrollment-Details-20240915_190953']  # 选择集合
-    try:
-        # 查询MongoDB中的所有学生数据
-        students = collection.find()
-        # 将查询结果转换为JSON格式
-        student_list = []
-        for student in students:
-            print(student['Student Name'])
-            student_list.append({
-                'name': student.get('Student Name', 'No Name'),
-                'id': student.get('StudentID', 'No ID'),
-                'course': student.get('Course Name', 'No Course Name'),
-                'campus': student.get('Campus', 'No Campus')
-            })
+# @app.route('/students_timetable', methods=['GET'])
+# def get_students():
+#     client = mongoDB.login()
+#     db = client['2019_Semester1']  # 选择数据库
+#     collection = db['Students-Enrollment-Details-20240915_190953']  # 选择集合
+#     try:
+#         # 查询MongoDB中的所有学生数据
+#         students = collection.find()
+#         # 将查询结果转换为JSON格式
+#         student_list = []
+#         for student in students:
+#             print(student['Student Name'])
+#             student_list.append({
+#                 'name': student.get('Student Name', 'No Name'),
+#                 'id': student.get('StudentID', 'No ID'),
+#                 'course': student.get('Course Name', 'No Course Name'),
+#                 'campus': student.get('Campus', 'No Campus')
+#             })
         
-        return jsonify(student_list), 200  # 返回JSON响应，状态码200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500  # 返回错误信息，状态码500'''
+#         return jsonify(student_list), 200  # 返回JSON响应，状态码200
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500  # 返回错误信息，状态码500'''
     
 @app.route('/get-student-timetable')
 def get_student_timetable():
@@ -979,14 +1006,35 @@ export the specific student timetable when the export button clicked
 '''
 @app.route('/export-one-student-timetable')
 def export_one_student_timetable():
-    year = request.args.get('year')
-    semester = request.args.get('semester')
-    campus = request.args.get('campus')
-    folder_prefix = request.args.get('folder_prefix')
-    degree_name = request.args.get('degree_name')
-    student_id = request.args.get('student_id')
-    print(f"Received parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}, student_id={student_id}")
-    download(year,semester,campus,folder_prefix,degree_name,student_id)
+    try:
+        year = request.args.get('year')
+        semester = request.args.get('semester')
+        campus = request.args.get('campus')
+        folder_prefix = request.args.get('folder_prefix')
+        degree_name = request.args.get('degree_name')
+        student_id = request.args.get('student_id')
+        
+        print(f"Received parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}, student_id={student_id}")
+        
+        # Convert student_id to integer
+        try:
+            student_id_int = int(student_id)
+        except ValueError:
+            return jsonify({"error": "Invalid student ID format"}), 400
+
+        # Call the download function
+        result = download(year, semester, campus, folder_prefix, degree_name, student_id_int)
+        
+        # Check if download was successful
+        if result:
+            return jsonify({"message": "Timetable exported successfully"}), 200
+        else:
+            return jsonify({"error": "Failed to export timetable"}), 500
+
+    except Exception as e:
+        print(f"Error in export_one_student_timetable: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
 if __name__ == '__main__':
     app.run(debug=True)
     

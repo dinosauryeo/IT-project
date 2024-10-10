@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victorian Institute of Technology Registration Page</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <div class="hamburger-menu">
+            <i class="fas fa-bars" onclick="toggleMenu()"></i>
+        </div>
+    </div>
+
+    <div id="sideMenu" class="side-menu">
+        <div class="close-btn" onclick="toggleMenu()">
+            <i class="fas fa-times"></i>
+        </div>
+        <ul>
+            <li onclick="loadHomePage()">Home</li>
+            <li onclick="loadStudentPage()">Student</li>
+            <li onclick="loadUploadPage()">Upload</li>
+            <li onclick="loadGeneratePage()">Generate</li>
+            <li onclick="loadLocationPage()">Add Location</li>
+            <li onclick="loadRegistrationPage()">Register</li>
+            <li onclick="logout()">Logout</li>
+        </ul>
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div class="registration-container">
+        <div>
+            <div>
+                <img src="static/images/logo.jpg"
+                alt="Sign"
+                width="300px"s
+                >
+            <h2 align="center">Register as a Member</h2>
+            <form id="registrationForm" onsubmit="registerUser(); return false;">
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="email" id="email" name="email" placeholder="Email Address" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="static/js/script.js"></script>
+</body>
+</html>

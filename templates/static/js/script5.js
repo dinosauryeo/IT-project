@@ -20,6 +20,9 @@ function logout() {
 function loadLocationPage() {
     window.location.href = '/location';
 }
+function loadRegistrationPage() {
+    window.location.href = '/register';
+}
 
 function toggleMenu() {
     const sideMenu = document.getElementById('sideMenu');
