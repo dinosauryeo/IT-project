@@ -6,6 +6,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Border, Side
 import os
+import re
 
 
 TIME = 60
@@ -147,10 +148,13 @@ def csv_to_excel(csv_file, excel_file):
 The method is to download each student timetable file from MongoDB 
 transfer into csv with student id _timetable
 '''
-def download():
+def download(year,semester,campus,folder_prefix,degree_name):
     client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
-    db = client['Students-Timetable']  
-    collection = db['Timetables']
+    db_name = f'{year}_{semester}'
+    db = client[db_name]
+    folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
+    collections = db.list_collection_names()
+    collection = next((coll for coll in collections if folder_pattern.match(coll)), None)
     days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     # create timetable file in local path
     download_dir = 'student_timetable'
@@ -159,7 +163,7 @@ def download():
     for document in collection.find():
         student_id = document['StudentID']
         timetables = document.get('Timetable', [])
-        sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day']), datetime.strptime(x['From'], '%H:%M')))
+        sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day'].lower()), datetime.strptime(x['From'], '%H:%M')))
         # create each students' csv
         filename = f'{student_id}_timetable.csv'
         file_path = os.path.join(download_dir, filename) 
@@ -183,5 +187,71 @@ def download():
                 print(f"No timetable found for StudentID: {student_id}")
         excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
         csv_to_excel(file_path, excel_path)
+
+def download(year, semester, campus, folder_prefix, degree_name, student_id):
+    client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
+    db_name = f'{year}_{semester}'
+    db = client[db_name]
+    
+    # 使用正则表达式寻找符合的集合
+    folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
+    collections = db.list_collection_names()
+    collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
+
+    if collection_name is None:
+        print(f"No collection found for the given criteria.")
+        return
+    
+    collection = db[collection_name]
+    days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+    # 查找指定 student_id 的时间表
+    student_data = collection.find_one({"StudentID": int(student_id)})
+
+    if student_data is None:
+        print(f"No timetable found for StudentID: {student_id}")
+        return
+
+    timetables = student_data.get('Timetable', [])
+    
+    if not timetables:
+        print(f"No timetable data available for StudentID: {student_id}")
+        return
+
+    # 排序时间表
+    sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day'].lower()), datetime.strptime(x['From'], '%H:%M')))
+
+    # 创建目录
+    download_dir = 'student_timetable'
+    os.makedirs(download_dir, exist_ok=True)
+
+    # 创建每个学生的csv文件
+    filename = f'{student_id}_timetable.csv'
+    file_path = os.path.join(download_dir, filename)
+
+    with open(file_path, 'w', newline='', encoding='utf-8') as file:
+        fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for timetable in sorted_timetables:
+            row = {
+                'Day': timetable.get('Day', '').capitalize(),
+                'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + " (L + T)",
+                'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + ' (' + calculate_duration(format_time(timetable.get('From', '')), format_time(timetable.get('To', ''))) + ' ' + timetable.get('Title', '') + ')',
+                'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
+                'Lecturer': timetable.get('Lecturer', ''),
+                'Tutor': timetable.get('Tutor', ''),
+                'Delivery Mode': timetable.get('Mode', '')
+            }
+            writer.writerow(row)
+
+    # 将CSV转换为Excel
+    excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')
+    csv_to_excel(file_path, excel_path)
+
+
+
+
 if __name__ == "__main__":
-    download()
+    download(2025, "Semester2","Adelaide", "Timetable", "Master of Information Technology and Systems", 4321)

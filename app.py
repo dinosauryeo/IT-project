@@ -19,6 +19,7 @@ from bson import ObjectId
 import logging
 import re
 import traceback
+from download import download
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -957,23 +958,35 @@ def get_student_timetable():
     return jsonify({"error": "Timetable not found"}), 404
 
 
+
 '''
-return the specific student timetable detail in jason searched by student's id
-stucture is like :
-[{'Day': 'Monday', 'Time': '8:00 to 9:00(L + T)', 'Unit': 'MITS5003-(1h Lecture 1)', 'Classroom\nLevel/ Room/ Venue': '1234', 'Lecturer': '', 'Tutor': '', 'Delivery Mode': 'oncampus'}, 
-...
-]
+export all student timetables when the export-all button clicked
 '''
-DOWNLOAD_FOLDER = 'student_timetable'
-@app.route('/get_csv/<filename>', methods=['POST'])
-def get_timetable(filename):
-    file_path = os.path.join(DOWNLOAD_FOLDER, str(filename)+"_timetable.csv")
-    if not os.path.exists(file_path):
-        return jsonify({"error": "File not found."}), 404
-    with open(file_path, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        data = [row for row in reader]
-    return jsonify(data)
+@app.route('/export-all-student-timetable')
+def export_all_student_timetable():
+    year = request.args.get('year')
+    semester = request.args.get('semester')
+    campus = request.args.get('campus')
+    folder_prefix = request.args.get('folder_prefix')
+    degree_name = request.args.get('degree_name')
+    student_id = request.args.get('student_id')
+    print(f"Received parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}, student_id={student_id}")
+    download(year,semester,campus,folder_prefix,degree_name)
+
+
+'''
+export the specific student timetable when the export button clicked
+'''
+@app.route('/export-one-student-timetable')
+def export_one_student_timetable():
+    year = request.args.get('year')
+    semester = request.args.get('semester')
+    campus = request.args.get('campus')
+    folder_prefix = request.args.get('folder_prefix')
+    degree_name = request.args.get('degree_name')
+    student_id = request.args.get('student_id')
+    print(f"Received parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}, student_id={student_id}")
+    download(year,semester,campus,folder_prefix,degree_name,student_id)
 if __name__ == '__main__':
     app.run(debug=True)
     
