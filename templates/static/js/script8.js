@@ -181,8 +181,15 @@ async function addClassrooms() {
 async function loadLocations() {
     try {
         const response = await fetch('/get_locations');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const locations = await response.json();
-        displayLocations(locations);
+        if (Array.isArray(locations)) {
+            displayLocations(locations);
+        } else {
+            console.error('Invalid data format received:', locations);
+        }
     } catch (error) {
         console.error('Error loading locations:', error);
     }

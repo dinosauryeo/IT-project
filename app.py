@@ -270,10 +270,6 @@ def add_classrooms():
 
 @app.route('/get_locations', methods=['GET'])
 def get_locations():
-    campus = request.args.get('campus')
-    if not campus:
-        return jsonify({'error': 'Campus parameter is required'}), 400
-
     client = mongoDB.login()
     db = client['IT-project']
     locations = []
