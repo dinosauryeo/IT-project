@@ -148,13 +148,17 @@ def csv_to_excel(csv_file, excel_file):
 The method is to download each student timetable file from MongoDB 
 transfer into csv with student id _timetable
 '''
-def download(year,semester,campus,folder_prefix,degree_name):
+def download_all(year,semester,campus,folder_prefix,degree_name):
     client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
     db_name = f'{year}_{semester}'
     db = client[db_name]
     folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
     collections = db.list_collection_names()
     collection = next((coll for coll in collections if folder_pattern.match(coll)), None)
+    if collection is None:
+        print(f"No collection found for the given criteria.")
+        return False
+    
     days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     # create timetable file in local path
     download_dir = 'student_timetable'
@@ -188,7 +192,7 @@ def download(year,semester,campus,folder_prefix,degree_name):
         excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
         csv_to_excel(file_path, excel_path)
 
-def download(year, semester, campus, folder_prefix, degree_name, student_id):
+def download_one(year, semester, campus, folder_prefix, degree_name, student_id):
     client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
     db_name = f'{year}_{semester}'
     db = client[db_name]
@@ -200,7 +204,7 @@ def download(year, semester, campus, folder_prefix, degree_name, student_id):
 
     if collection_name is None:
         print(f"No collection found for the given criteria.")
-        return
+        return False
     
     collection = db[collection_name]
     days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -210,13 +214,13 @@ def download(year, semester, campus, folder_prefix, degree_name, student_id):
 
     if student_data is None:
         print(f"No timetable found for StudentID: {student_id}")
-        return
+        return False
 
     timetables = student_data.get('Timetable', [])
     
     if not timetables:
         print(f"No timetable data available for StudentID: {student_id}")
-        return
+        return False
 
     # 排序时间表
     sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day'].lower()), datetime.strptime(x['From'], '%H:%M')))
@@ -249,9 +253,3 @@ def download(year, semester, campus, folder_prefix, degree_name, student_id):
     # 将CSV转换为Excel
     excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')
     csv_to_excel(file_path, excel_path)
-
-
-
-
-if __name__ == "__main__":
-    download(2025, "Semester2","Adelaide", "Timetable", "Master of Information Technology and Systems", 4321)

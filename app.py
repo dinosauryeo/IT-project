@@ -19,7 +19,7 @@ from bson import ObjectId
 import logging
 import re
 import traceback
-from download import download
+from download import download_all,download_one
 from flask_bcrypt import Bcrypt
 
 # Set up logging
@@ -987,14 +987,24 @@ export all student timetables when the export-all button clicked
 '''
 @app.route('/export-all-student-timetable')
 def export_all_student_timetable():
-    year = request.args.get('year')
-    semester = request.args.get('semester')
-    campus = request.args.get('campus')
-    folder_prefix = request.args.get('folder_prefix')
-    degree_name = request.args.get('degree_name')
-    student_id = request.args.get('student_id')
-    print(f"Received parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}, student_id={student_id}")
-    download(year,semester,campus,folder_prefix,degree_name)
+    # Convert student_id to integer
+    try:
+        year = request.args.get('year')
+        semester = request.args.get('semester')
+        campus = request.args.get('campus')
+        folder_prefix = request.args.get('folder_prefix')
+        degree_name = request.args.get('degree_name')
+        print(f"Received parameters: year={year}, semester={semester}, campus={campus}, folder_prefix={folder_prefix}, degree_name={degree_name}")
+        result = download_all(year,semester,campus,folder_prefix,degree_name)  
+        # Check if download was successful
+        if result == False:
+            return jsonify({"error": "Failed to export timetable"}), 500
+        else:
+            return jsonify({"message": "Timetable exported successfully"}), 200
+
+    except Exception as e:
+        print(f"Error in export_all_student_timetable: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 '''
@@ -1019,13 +1029,13 @@ def export_one_student_timetable():
             return jsonify({"error": "Invalid student ID format"}), 400
 
         # Call the download function
-        result = download(year, semester, campus, folder_prefix, degree_name, student_id_int)
+        result = download_one(year, semester, campus, folder_prefix, degree_name, student_id_int)
         
         # Check if download was successful
-        if result:
-            return jsonify({"message": "Timetable exported successfully"}), 200
-        else:
+        if result == False:
             return jsonify({"error": "Failed to export timetable"}), 500
+        else:
+            return jsonify({"message": "Timetable exported successfully"}), 200
 
     except Exception as e:
         print(f"Error in export_one_student_timetable: {str(e)}")
