@@ -7,3 +7,4 @@ yagmail==0.15.293
 pymongo==4.7.3
 gunicorn==23.0.0
 pytest==7.4.4 
+openpyxl == 3.1.3
