@@ -21,6 +21,7 @@ import re
 import traceback
 from download import download_all,download_one
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -83,6 +84,7 @@ def reset_page():
 def logout_page():
     session.pop('logged_in', None)
     session.pop('username', None)
+    session.pop('accessLevel',None)
     return render_template('Login.html')
 
 #10/10 15:42 last modify
@@ -93,20 +95,27 @@ def register():
     users_collection = db['User-data']
 
     if request.method == 'POST':
-        data = request.json
-        existing_user = users_collection.find_one({'$or': [{'username': data['username']}, {'email': data['email']}]})
+        if(session.get('accessLevel') == 0):
+            data = request.json
+            existing_user = users_collection.find_one({'$or': [{'username': data['username']}, {'email': data['email']}]})
+            
+            if existing_user:
+                return jsonify({'status': 'error', 'message': 'Username or email already exists'})
+            
+            #hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            new_user = {
+                'username': data['username'],
+                'email': data['email'],
+                'password': data['password'],
+                'accessLevel':"1",
+                'verification_code': None,
+                'vericode_date_sent':datetime(1900, 1, 1, 0, 0, 0)
+            }
+            users_collection.insert_one(new_user)
+            return jsonify({'status': 'success', 'message': 'User registered successfully'})
         
-        if existing_user:
-            return jsonify({'status': 'error', 'message': 'Username or email already exists'})
-        
-        hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-        new_user = {
-            'username': data['username'],
-            'email': data['email'],
-            'password': hashed_password
-        }
-        users_collection.insert_one(new_user)
-        return jsonify({'status': 'success', 'message': 'User registered successfully'})
+        else:
+            return jsonify({'status': 'error', 'message': 'unallowed for current access level'})
     
     return render_template('Registration.html')
 
@@ -126,10 +135,12 @@ def login():
     
     success = mongoDB.verify(password,username_or_email)
     
-    if success:
+    if success != False:
         # In a real application, you'd set a session or token here
         session['logged_in'] = True
         session['username'] = username_or_email
+        session['accessLevel'] = success
+        print(f"access level:{success}\n")
         return jsonify({"status": "success", "message": "Login successful"})
     else:
         return jsonify({"status": "fail", "message": "Invalid username or password"})

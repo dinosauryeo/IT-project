@@ -46,7 +46,8 @@ def verify(password, username):
     if result is None:
         return False
     else:
-        return True
+        print(result)
+        return result['access_level']
 
 #to update a value in database
 def input_user_data(email,destination,data):
