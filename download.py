@@ -7,7 +7,11 @@ from openpyxl.drawing.image import Image
 from openpyxl.styles import Border, Side
 import os
 import re
-
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 
 TIME = 60
 COLUMN_C = 87.67
@@ -149,49 +153,130 @@ The method is to download each student timetable file from MongoDB
 transfer into csv with student id _timetable
 '''
 def download_all(year,semester,campus,folder_prefix,degree_name):
-    client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
-    db_name = f'{year}_{semester}'
-    db = client[db_name]
-    folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
-    collections = db.list_collection_names()
-    collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
-    if collection_name is None:
-        print(f"No collection found for the given criteria.")
+    #setup information required to send the email
+    server = 'smtp.gmail.com'
+    port = 587
+    username = "dinosauryeo@gmail.com"
+    password = "jucvnvbkwtgcehjo"
+    
+    try:
+        with smtplib.SMTP(server, port) as server:
+            #create connection
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls() 
+                
+            #login and send the mail
+            server.login(username, password)
+            
+            print("server prepared\n")
+            
+            client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
+            db_name = f'{year}_{semester}'
+            db = client[db_name]
+            
+            #get the target collection that stoes the timetable 
+            folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
+            collections = db.list_collection_names()
+            collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
+            
+            if collection_name is None:
+                print(f"No collection found for the given criteria.")
+                return False
+        
+            collection = db[collection_name]
+            
+            #preparing information for fetching the gmail address of the student to send the email to
+            folder_pattern = re.compile(f"^Students-Enrollment-Details.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
+            collections = db.list_collection_names()
+            collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
+            
+            if collection_name is None:
+                return false;
+            
+            student_collection = db[collection_name]
+            
+            days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            # create timetable file in local path
+            download_dir = 'student_timetable'
+            os.makedirs(download_dir, exist_ok=True)
+            # extract each student timetable
+            for document in collection.find():
+                student_id = document['StudentID']
+                print(f"{student_id}\n")
+                
+                timetables = document.get('Timetable', [])
+                sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day'].lower()), datetime.strptime(x['From'], '%H:%M')))
+                # create each students' csv
+                filename = f'{student_id}_timetable.csv'
+                file_path = os.path.join(download_dir, filename) 
+                with open(file_path, 'w', newline = '', encoding = 'utf-8') as file:
+                    fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
+                    writer = csv.DictWriter(file, fieldnames = fieldnames)
+                    writer.writeheader()
+                    if sorted_timetables:
+                        for timetable in sorted_timetables:
+                            row = {
+                                'Day': timetable.get('Day', '').capitalize(),
+                                'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + "(L + T)",
+                                'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + '(' + calculate_duration(format_time(timetable.get('From', '')) , format_time(timetable.get('To', ''))) +' ' +timetable.get('Title', '') + ')',
+                                'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
+                                'Lecturer': timetable.get('Lecturer', ''),
+                                'Tutor': timetable.get('Tutor', ''),
+                                'Delivery Mode': timetable.get('Mode', '')
+                            }
+                            writer.writerow(row)
+                            print(f"writing into csv\n")
+                    else:
+                        print(f"No timetable found for StudentID: {student_id}")
+                excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
+                csv_to_excel(file_path, excel_path)
+                print("excel verstion timetable ready\n")
+            
+                #fetching the student's email
+                student_data = student_collection.find_one({"StudentID": int(student_id)})
+                student_email = student_data["University Email"]
+                
+                print("student_data foud\n")
+                
+                #construct the email body
+                msg = MIMEMultipart()
+                msg['From'] = username
+                msg['To'] = student_email
+                msg['Subject'] = "Student's timetable"
+                body = "Hi, below is your timetable for the following semester"
+                msg.attach(MIMEText(body, 'plain'))
+
+                print(excel_path)
+                #attch the excel file
+                with open(excel_path, "rb") as attachment:
+                    print("starts to encode file\n")
+                    # Create a MIMEBase object and set its payload to the file content
+                    mime_base = MIMEBase('application', 'octet-stream')
+                    mime_base.set_payload(attachment.read())
+                        
+                    # Encode the payload in base64
+                    encoders.encode_base64(mime_base)
+                            
+                    # Add a header to the attachment
+                    mime_base.add_header('Content-Disposition', f'attachment; filename="{excel_path.split("/")[-1]}"')
+                            
+                    # Attach the Excel file to the message
+                    msg.attach(mime_base)
+                    print("finish encoding file\n")
+                
+                print("trying to send email\n")
+                server.sendmail(username, student_email, msg.as_string())
+                print(f"sent to {student_id}")
+                
+                #delete the file after it had been sent
+                os.remove(excel_path)
+                os.remove(file_path)
+        
+    except Exception as e:
         return False
     
-    collection = db[collection_name]
-    days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-    # create timetable file in local path
-    download_dir = 'student_timetable'
-    os.makedirs(download_dir, exist_ok=True)
-    # extract each student timetable
-    for document in collection.find():
-        student_id = document['StudentID']
-        timetables = document.get('Timetable', [])
-        sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day'].lower()), datetime.strptime(x['From'], '%H:%M')))
-        # create each students' csv
-        filename = f'{student_id}_timetable.csv'
-        file_path = os.path.join(download_dir, filename) 
-        with open(file_path, 'w', newline = '', encoding = 'utf-8') as file:
-            fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
-            writer = csv.DictWriter(file, fieldnames = fieldnames)
-            writer.writeheader()
-            if sorted_timetables:
-                for timetable in sorted_timetables:
-                    row = {
-                        'Day': timetable.get('Day', '').capitalize(),
-                        'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + "(L + T)",
-                        'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + '(' + calculate_duration(format_time(timetable.get('From', '')) , format_time(timetable.get('To', ''))) +' ' +timetable.get('Title', '') + ')',
-                        'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
-                        'Lecturer': timetable.get('Lecturer', ''),
-                        'Tutor': timetable.get('Tutor', ''),
-                        'Delivery Mode': timetable.get('Mode', '')
-                    }
-                    writer.writerow(row)
-            else:
-                print(f"No timetable found for StudentID: {student_id}")
-        excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
-        csv_to_excel(file_path, excel_path)
+    return True
+    
 
 def download_one(year, semester, campus, folder_prefix, degree_name, student_id):
     client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
@@ -254,3 +339,21 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     # 将CSV转换为Excel
     excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')
     csv_to_excel(file_path, excel_path)
+    
+    #fetching the gmail address of the student to send the email to
+    folder_pattern = re.compile(f"^Students-Enrollment-Details.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
+    collections = db.list_collection_names()
+    collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
+    
+    if collection_name is None:
+        return false;
+    
+    collection = db[collection_name]
+
+    # 查找指定 student_id 的时间表
+    student_data = collection.find_one({"StudentID": int(student_id)})
+    
+    if student_data is None:
+        return false
+    
+    return student_data.get("University Email")

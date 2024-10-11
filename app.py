@@ -584,7 +584,7 @@ def send_vericode():
     #genereate the verification code
     verification_code = random.randint(100000, 999999)
     
-    respons = send_email({user_email:["Verification code to reset password", "Your verification code is " + str(verification_code) +" ,please use this within one minute"]})
+    respons = send_email([user_email, "Verification code to reset password", "Your verification code is " + str(verification_code) +" ,please use this within one minute"])
     
     if respons == 1:
         #store the verification code in the system
@@ -609,7 +609,7 @@ def send_timetable():
         print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
     
-
+"""
 #to send email out to a list of email, using a dictionary structure where the key would be receiver email and the value would be a list where the first element
 #would be the email subject, second element would be the email body and possibiliy a third element which would be a excel file to send
 def send_email(email_list):
@@ -646,7 +646,6 @@ def send_email(email_list):
                 # Attach the Excel file to the message
                 msg.attach(mime_base)
             
-
         try:
             with smtplib.SMTP(server, port) as server:
                 #create connection
@@ -659,8 +658,61 @@ def send_email(email_list):
         
         except Exception as e:
             return e
-    
+            
     return 1
+"""
+
+def send_email(email_list):
+    #setup information required to send the email
+    server = 'smtp.gmail.com'
+    port = 587
+    username = "dinosauryeo@gmail.com"
+    password = "jucvnvbkwtgcehjo"
+    
+    try:
+        with smtplib.SMTP(server, port) as server:
+            #create connection
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls() 
+                
+            #login and send the mail
+            server.login(username, password)
+            
+            email = email_list[0]
+            
+            #construct the email body
+            msg = MIMEMultipart()
+            msg['From'] = username
+            msg['To'] = email
+            msg['Subject'] = email_list[1]
+            body = email_list[2]
+            msg.attach(MIMEText(body, 'plain'))
+                
+            #attch the excel file if it exists
+            if(len(email_list) == 4):
+                file_path = email_list[3] 
+                print(f"file path:{file_path}\n")
+                
+                with open(file_path, "rb") as attachment:
+                    # Create a MIMEBase object and set its payload to the file content
+                    mime_base = MIMEBase('application', 'octet-stream')
+                    mime_base.set_payload(attachment.read())
+                    
+                    # Encode the payload in base64
+                    encoders.encode_base64(mime_base)
+                        
+                    # Add a header to the attachment
+                    mime_base.add_header('Content-Disposition', f'attachment; filename="{file_path.split("/")[-1]}"')
+                        
+                    # Attach the Excel file to the message
+                    msg.attach(mime_base)
+            
+            server.sendmail(username, email, msg.as_string())
+        
+    except Exception as e:
+        return False
+    
+    return True
 
 #route to handle reseting and relogin 
 @app.route('/reset_password', methods=['POST'])
@@ -1034,12 +1086,23 @@ def export_one_student_timetable():
         # Check if download was successful
         if result == False:
             return jsonify({"error": "Failed to export timetable"}), 500
-        else:
-            return jsonify({"message": "Timetable exported successfully"}), 200
 
     except Exception as e:
-        print(f"Error in export_one_student_timetable: {str(e)}")
         return jsonify({"error": str(e)}), 500
+    
+    file_path = os.path.join("student_timetable", student_id+"_timetable.xlsx") 
+    success = send_email([result, "student timetable","this is your timetable", file_path])
+    
+    if success:
+        csv_file_path = os.path.join("student_timetable", student_id+"_timetable.csv") 
+        
+        os.remove(file_path)
+        os.remove(csv_file_path)
+        print("file remvoed")
+        return jsonify({"message":"successful sent timetable"})
+    else:
+        print("failed to send\n")
+        return jsonify({"error": "failed to send"}), 500
     
 if __name__ == '__main__':
     app.run(debug=True)
