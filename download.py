@@ -154,11 +154,12 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
     db = client[db_name]
     folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
     collections = db.list_collection_names()
-    collection = next((coll for coll in collections if folder_pattern.match(coll)), None)
-    if collection is None:
+    collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
+    if collection_name is None:
         print(f"No collection found for the given criteria.")
         return False
     
+    collection = db[collection_name]
     days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     # create timetable file in local path
     download_dir = 'student_timetable'
