@@ -63,12 +63,14 @@ def calculate_duration(start_time, end_time):
 '''translate csv timetable into excel
 with well structured format and meet target output design '''
 def csv_to_excel(csv_file, excel_file):
+    print("strating conversion")
     # create border feature
     thin_border = Border(left=Side(style='thin'),
                      right=Side(style='thin'),
                      top=Side(style='thin'),
                      bottom=Side(style='thin'))
     tahoma_font = Font(name = TAHOMA, size = SIZE)
+    print("format setted")
     # create a Excelwritter 
     with pd.ExcelWriter(excel_file, engine = 'openpyxl') as writer:
         workbook = writer.book
@@ -132,7 +134,7 @@ def csv_to_excel(csv_file, excel_file):
                 merged_cell.alignment = Alignment(horizontal = LEFT, vertical = HORIZONTAL)
                 merged_cell.font = Font(color = RED, bold = True, name=TAHOMA, size = SIZE)    
 
-            
+        print("putting background and font")
         # grey back ground and font
         header_fill = PatternFill(start_color= GREY , end_color = GREY, fill_type="solid")  
         header_font = Font(bold=True, color = BLACK, name = TAHOMA)
@@ -152,6 +154,7 @@ def csv_to_excel(csv_file, excel_file):
                 cell.border = thin_border
         worksheet.row_dimensions[ROW].height = ROW_HEIGHT
         worksheet['D9'].alignment = Alignment(horizontal = HORIZONTAL, vertical = HORIZONTAL, wrap_text = True)
+        print("complte workflow")
 
 
 
@@ -234,10 +237,13 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                                 'Delivery Mode': timetable.get('Mode', '')
                             }
                             writer.writerow(row)
-                            #print(f"writing into csv\n")
+                            print(f"writing into csv\n")
                     else:
                         print(f"No timetable found for StudentID: {student_id}")
-                excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
+                        
+                print("preparing excel path")
+                excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')        
+                print("converting csv to excel file") 
                 csv_to_excel(file_path, excel_path)
                 print("excel verstion timetable ready\n")
             
