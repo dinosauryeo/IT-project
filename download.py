@@ -73,6 +73,7 @@ def csv_to_excel(csv_file, excel_file):
     print("format setted")
     # create a Excelwritter 
     with pd.ExcelWriter(excel_file, engine = 'openpyxl') as writer:
+        print("create excelwritter")
         workbook = writer.book
         #create new work sheet
         worksheet = workbook.create_sheet(title = 'Timetable') 
@@ -82,20 +83,23 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.column_dimensions['D'].width = COLUMN_D
         worksheet.column_dimensions['E'].width = COLUMN_E
         worksheet.column_dimensions['F'].width = COLUMN_E
-        # image path find
+        print("column finish")
+        #image path find
         image_directory = os.path.join(os.getcwd(), "templates")
         image_dir = os.path.join(image_directory, "static")
         image_d = os.path.join(image_dir, "images")
         image_path = os.path.join(image_d, 'uniphoto.png')
+        print("image path created")
         # create image
         if os.path.exists(image_path):
             img = Image(image_path)  
             #move image into EXCEL
             worksheet.add_image(img, 'A1') 
+            print(f"Image found: {image_path}")
         else:
             print(f"Image not found at path: {image_path}")
             return False
-        
+        print("image path found")
         # import title
         worksheet.append(['']*1 + ["Victorian Institute of Technology Pty Ltd"])
         worksheet.append(['']*1 + ["ABN: 41 085 128 525 RTO No: 20829 TEQSA ID: PRV14007 CRICOS Provider Code: 02044E"])
