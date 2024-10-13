@@ -225,10 +225,13 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                                 'Delivery Mode': timetable.get('Mode', '')
                             }
                             writer.writerow(row)
-                            #print(f"writing into csv\n")
+                            print(f"writing into csv\n")
                     else:
                         print(f"No timetable found for StudentID: {student_id}")
-                excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
+                        
+                print("preparing excel path")
+                excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')        
+                print("converting csv to excel file") 
                 csv_to_excel(file_path, excel_path)
                 print("excel verstion timetable ready\n")
             
