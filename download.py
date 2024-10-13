@@ -298,8 +298,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
     db_name = f'{year}_{semester}'
     db = client[db_name]
-    
-    # 使用正则表达式寻找符合的集合
+
     folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
     collections = db.list_collection_names()
     collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
@@ -311,7 +310,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     collection = db[collection_name]
     days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
-    # 查找指定 student_id 的时间表
+    # find exactly student timetable
     student_data = collection.find_one({"StudentID": int(student_id)})
 
     if student_data is None:
@@ -324,14 +323,14 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
         print(f"No timetable data available for StudentID: {student_id}")
         return False
 
-    # 排序时间表
+    # sort timetable
     sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day'].lower()), datetime.strptime(x['From'], '%H:%M')))
 
-    # 创建目录
+    # create student timetable file
     download_dir = 'student_timetable'
     os.makedirs(download_dir, exist_ok=True)
 
-    # 创建每个学生的csv文件
+    # create student csv file
     filename = f'{student_id}_timetable.csv'
     file_path = os.path.join(download_dir, filename)
 
@@ -351,7 +350,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
             }
             writer.writerow(row)
 
-    # 将CSV转换为Excel
+    # change csv into excel
     excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')
     csv_to_excel(file_path, excel_path)
     
@@ -365,7 +364,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     
     collection = db[collection_name]
 
-    # 查找指定 student_id 的时间表
+    # find exact student timetable
     student_data = collection.find_one({"StudentID": int(student_id)})
     
     if student_data is None:
