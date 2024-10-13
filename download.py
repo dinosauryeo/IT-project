@@ -62,6 +62,7 @@ def calculate_duration(start_time, end_time):
 '''translate csv timetable into excel
 with well structured format and meet target output design '''
 def csv_to_excel(csv_file, excel_file):
+    print("strating conversion")
     # create border feature
     thin_border = Border(left=Side(style='thin'),
                      right=Side(style='thin'),
@@ -83,6 +84,7 @@ def csv_to_excel(csv_file, excel_file):
         # image add
         img = Image('templates/static/images/uniphoto.png')  
         worksheet.add_image(img, 'A1')
+        print("image inserted")
         
         # import title
         worksheet.append(['']*1 + ["Victorian Institute of Technology Pty Ltd"])
@@ -106,6 +108,7 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.merge_cells('A5:G5')
         worksheet.merge_cells('A6:G6')
         worksheet.merge_cells('A7:G7')
+        print("inserted and merged")
         for row in range(1, ROW - 1):
             if row < TITLE:
                 merged_cell = worksheet[f'B{row}']
@@ -122,7 +125,7 @@ def csv_to_excel(csv_file, excel_file):
                 merged_cell.alignment = Alignment(horizontal = LEFT, vertical = HORIZONTAL)
                 merged_cell.font = Font(color = RED, bold = True, name=TAHOMA, size = SIZE)    
 
-            
+        print("putting background and font")
         # grey back ground and font
         header_fill = PatternFill(start_color= GREY , end_color = GREY, fill_type="solid")  
         header_font = Font(bold=True, color = BLACK, name = TAHOMA)
@@ -142,6 +145,7 @@ def csv_to_excel(csv_file, excel_file):
                 cell.border = thin_border
         worksheet.row_dimensions[ROW].height = ROW_HEIGHT
         worksheet['D9'].alignment = Alignment(horizontal = HORIZONTAL, vertical = HORIZONTAL, wrap_text = True)
+        print("complte workflow")
 
 
 
