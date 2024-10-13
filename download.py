@@ -69,6 +69,7 @@ def csv_to_excel(csv_file, excel_file):
                      top=Side(style='thin'),
                      bottom=Side(style='thin'))
     tahoma_font = Font(name = TAHOMA, size = SIZE)
+    print("format setted")
     # create a Excelwritter 
     with pd.ExcelWriter(excel_file, engine = 'openpyxl') as writer:
         workbook = writer.book
@@ -81,6 +82,7 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.column_dimensions['E'].width = COLUMN_E
         worksheet.column_dimensions['F'].width = COLUMN_E
         worksheet.column_dimensions['G'].width = COLUMN_G
+        print("preparing to create imagwe")
         # image add
         img = Image('templates/static/images/uniphoto.png')  
         worksheet.add_image(img, 'A1')
