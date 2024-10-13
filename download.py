@@ -94,7 +94,9 @@ def csv_to_excel(csv_file, excel_file):
         print(result);
         # create image
         if os.path.exists(image_path):
+            print("0");
             img = Image(image_path)  
+            print("1");
             #move image into EXCEL
             worksheet.add_image(img, 'A1') 
             print(f"Image found: {image_path}")
