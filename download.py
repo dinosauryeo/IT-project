@@ -94,9 +94,12 @@ def csv_to_excel(csv_file, excel_file):
         print(result);
         # create image
         if os.path.exists(image_path):
-            print("0");
-            img = Image(image_path)  
-            print("1");
+            try:
+                print("0")  # 检查是否进入此逻辑
+                img = Image(image_path)  # 尝试加载图片
+                print("1")  # 图片加载成功
+            except Exception as e:  # 捕获所有异常
+                print(f"An error occurred while loading the image: {e}")  # 输出错误信息
             #move image into EXCEL
             worksheet.add_image(img, 'A1') 
             print(f"Image found: {image_path}")
