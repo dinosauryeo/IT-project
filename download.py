@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 
+
 TIME = 60
 COLUMN_C = 87.67
 COLUMN_B = 29.67
@@ -79,10 +80,19 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.column_dimensions['D'].width = COLUMN_D
         worksheet.column_dimensions['E'].width = COLUMN_E
         worksheet.column_dimensions['F'].width = COLUMN_E
-        worksheet.column_dimensions['G'].width = COLUMN_G
-        # image add
-        img = Image('templates/static/images/uniphoto.png')  
-        worksheet.add_image(img, 'A1')
+        # image path find
+        image_directory = os.path.join(os.getcwd(), "templates")
+        image_dir = os.path.join(image_directory, "static")
+        image_d = os.path.join(image_dir, "images")
+        image_path = os.path.join(image_d, 'uniphoto.png')
+        # create image
+        if os.path.exists(image_path):
+            img = Image(image_path)  
+            #move image into EXCEL
+            worksheet.add_image(img, 'A1') 
+        else:
+            print(f"Image not found at path: {image_path}")
+            return False
         
         # import title
         worksheet.append(['']*1 + ["Victorian Institute of Technology Pty Ltd"])
@@ -99,13 +109,13 @@ def csv_to_excel(csv_file, excel_file):
         for row in data.itertuples(index=False):
             # append each line into excel
             worksheet.append(row) 
-        worksheet.merge_cells('B1:G1') 
-        worksheet.merge_cells('B2:G2') 
-        worksheet.merge_cells('B3:G3') 
-        worksheet.merge_cells('B4:G4')
-        worksheet.merge_cells('A5:G5')
-        worksheet.merge_cells('A6:G6')
-        worksheet.merge_cells('A7:G7')
+        worksheet.merge_cells('B1:F1') 
+        worksheet.merge_cells('B2:F2') 
+        worksheet.merge_cells('B3:F3') 
+        worksheet.merge_cells('B4:F4')
+        worksheet.merge_cells('A5:F5')
+        worksheet.merge_cells('A6:F6')
+        worksheet.merge_cells('A7:F7')
         for row in range(1, ROW - 1):
             if row < TITLE:
                 merged_cell = worksheet[f'B{row}']
@@ -126,7 +136,7 @@ def csv_to_excel(csv_file, excel_file):
         # grey back ground and font
         header_fill = PatternFill(start_color= GREY , end_color = GREY, fill_type="solid")  
         header_font = Font(bold=True, color = BLACK, name = TAHOMA)
-        columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        columns = ['A', 'B', 'C', 'D', 'E', 'F']
         for column in columns:
             cell = worksheet[f'{column}9']
             cell.font = header_font
@@ -191,7 +201,7 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
             collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
             
             if collection_name is None:
-                return false;
+                return False;
             
             student_collection = db[collection_name]
             
@@ -210,7 +220,7 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                 filename = f'{student_id}_timetable.csv'
                 file_path = os.path.join(download_dir, filename) 
                 with open(file_path, 'w', newline = '', encoding = 'utf-8') as file:
-                    fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
+                    fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Delivery Mode']
                     writer = csv.DictWriter(file, fieldnames = fieldnames)
                     writer.writeheader()
                     if sorted_timetables:
@@ -220,8 +230,7 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                                 'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + "(L + T)",
                                 'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + '(' + calculate_duration(format_time(timetable.get('From', '')) , format_time(timetable.get('To', ''))) +' ' +timetable.get('Title', '') + ')',
                                 'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
-                                'Lecturer': timetable.get('Lecturer', ''),
-                                'Tutor': timetable.get('Tutor', ''),
+                                'Lecturer': timetable.get('Name', ''),
                                 'Delivery Mode': timetable.get('Mode', '')
                             }
                             writer.writerow(row)
@@ -269,6 +278,7 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                 print(f"sent to {student_id}")
                 
                 #delete the file after it had been sent
+                
                 os.remove(excel_path)
                 os.remove(file_path)
         
@@ -320,7 +330,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     file_path = os.path.join(download_dir, filename)
 
     with open(file_path, 'w', newline='', encoding='utf-8') as file:
-        fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
+        fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Delivery Mode']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -330,8 +340,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
                 'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + " (L + T)",
                 'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + ' (' + calculate_duration(format_time(timetable.get('From', '')), format_time(timetable.get('To', ''))) + ' ' + timetable.get('Title', '') + ')',
                 'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
-                'Lecturer': timetable.get('Lecturer', ''),
-                'Tutor': timetable.get('Tutor', ''),
+                'Lecturer': timetable.get('Name', ''),
                 'Delivery Mode': timetable.get('Mode', '')
             }
             writer.writerow(row)
@@ -346,7 +355,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
     
     if collection_name is None:
-        return false;
+        return False;
     
     collection = db[collection_name]
 
@@ -354,6 +363,6 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     student_data = collection.find_one({"StudentID": int(student_id)})
     
     if student_data is None:
-        return false
+        return False
     
     return student_data.get("University Email")
