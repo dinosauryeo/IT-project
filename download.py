@@ -90,6 +90,8 @@ def csv_to_excel(csv_file, excel_file):
         image_d = os.path.join(image_dir, "images")
         image_path = os.path.join(image_d, 'uniphoto.png')
         print("image path created")
+        result=os.path.exists(image_path);
+        print(result);
         # create image
         if os.path.exists(image_path):
             img = Image(image_path)  
