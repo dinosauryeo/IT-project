@@ -127,9 +127,14 @@ function registerUser() {
     var email = document.getElementById("email").value;
     var password = document.getElementById("password").value;
     var confirmPassword = document.getElementById("confirmPassword").value;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W])[A-Za-z\d\W]{8,}$/;
 
     if (password !== confirmPassword) {
         alert("Passwords do not match!");
+        return;
+    }
+    if (!regex.test(password)){
+        alert("This password doesn't meet the required requirement");
         return;
     }
 
