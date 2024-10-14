@@ -21,7 +21,7 @@ import re
 import traceback
 from download import download_all,download_one
 from flask_bcrypt import Bcrypt
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -54,7 +54,7 @@ def login_page():
 @app.route('/home', methods=['GET'])
 def home_page():
     print(session)
-    if "logged_in" in session:
+    if "logged_in" in session and check_time():
         return render_template('home.html')
     else:
         return render_template('Login.html')
@@ -63,28 +63,126 @@ def home_page():
 
 @app.route('/student')
 def student_page():
-    if "logged_in" in session:
+    if "logged_in" in session and check_time():
         return render_template('student.html')
     else:
         return render_template('Login.html')
 
 @app.route('/generate')
 def generate_page():
-    if "logged_in" in session:
+    if "logged_in" in session and check_time():
         return render_template('generate.html')
     else:
         return render_template('Login.html')
+    
+@app.route('/location')
+def location_page():
+    if "logged_in" in session and check_time():
+        return render_template('location.html')
+    else:
+        return render_template('Login.html')
+
+@app.route('/editsubject', methods=['GET'])
+def editsubject_page():
+    if "logged_in" in session and check_time():
+        return render_template('EditSubjects.html')
+    else:
+        return render_template("Login.html")
+
+@app.route('/createsubject', methods=['GET', 'POST'])
+def createsubject_page():
+    if "logged_in" in session and check_time():
+        if request.method == 'GET':
+            return render_template('create_subject.html')
+        
+        data = request.json
+        print(f"Received data: {data}")  # Log received data
+
+        year = data.get('year')
+        semester = data.get('semester')
+        campus = data.get('campus')
+        coordinator = data.get('coordinator')
+        subject_name = data.get('subjectName')
+        subject_code = data.get('subjectCode')
+        sections = data.get('sections')
+        
+        subject_data = {
+            'year': year,
+            'semester': semester,
+            'campus': campus,
+            'coordinator': coordinator,
+            'subjectName': subject_name,
+            'subjectCode': subject_code,
+            'sections': sections
+        }
+
+        try:
+            inserted_id = mongoDB.insert_subject(subject_data,year, semester)
+            print(f"Inserted document ID: {inserted_id}")  # Log inserted document ID
+            return jsonify({'status': 'success'}), 200
+        except Exception as e:
+            print(f"Error inserting subject: {e}")  # Log error message
+            return jsonify({'status': 'error', 'message': 'Failed to create subject'}), 500
+    else:
+        return render_template("Login.html")
+    
+# 14/09 10:06 last modify
+# Route to handle file upload
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    
+    if "logged_in" in session and check_time():
+        if request.method == 'GET':
+            return render_template('upload.html')
+        
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+
+        file = request.files['file']
+        year = request.form.get('year')  # Get the year from the form data
+        semester = request.form.get('semester')  # Get the semester from the form data
+
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+
+        if file:
+            # Create a directory with year and semester if it doesn't exist
+            folder_name = f"{year}_{semester}"
+            folder_path = os.path.join(app.config['UPLOAD_FOLDER'], folder_name)
+            os.makedirs(folder_path, exist_ok=True)
+            
+            # Save the file to the server inside the year_semester folder
+            filepath = os.path.join(folder_path, file.filename)
+            file.save(filepath)
+
+            # Process the file as needed (e.g., store data in database)
+            if file.filename.endswith('.csv'):
+                # Call the function to insert data into MongoDB
+                insert_student_data(filepath, year, semester)
+            elif file.filename.endswith('.xlsx'):
+                df = pd.read_excel(filepath)
+                # Optionally handle Excel files here
+            else:
+                return jsonify({'error': 'Invalid file format'}), 400
+
+            return jsonify({'message': 'File uploaded and data stored successfully'})
+    else:
+        return render_template("Login.html")
+
+    
 
 # Route to serve the reset password HTML file
 @app.route('/reset_page')
 def reset_page():
     return render_template('fgtpswd.html')
 
+
 @app.route('/logout')
 def logout_page():
     session.pop('logged_in', None)
     session.pop('username', None)
     session.pop('accessLevel',None)
+    session.pop("login_time", None)
     return render_template('Login.html')
 
 #10/10 15:42 last modify
@@ -136,14 +234,37 @@ def login():
     success = mongoDB.verify(password,username_or_email)
     
     if success != False:
-        # In a real application, you'd set a session or token here
+        #add in the session token and time limit on the session token here
         session['logged_in'] = True
         session['username'] = username_or_email
         session['accessLevel'] = success
-        print(f"access level:{success}\n")
+        session['login_time'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        
         return jsonify({"status": "success", "message": "Login successful"})
     else:
         return jsonify({"status": "fail", "message": "Invalid username or password"})
+    
+def check_time():
+    session_limit = timedelta(hours = 1)
+    login_time_str = session.get('login_time', None)
+    
+    if not login_time_str:
+        return False
+
+    # Convert the stored string back to a datetime object
+    login_time = datetime.strptime(login_time_str, '%Y-%m-%d %H:%M:%S')
+    
+    # Get the current time
+    current_time = datetime.utcnow()
+    
+    # Check if the session has been active for more than 2 hours
+    if current_time - login_time > session_limit:
+        # Session is older than 2 hours
+        session.clear()  # Optionally clear session
+        return False
+    else:
+        return True
+    
     
 # 09/10 12:53 last modify
 @app.route('/api/get-year-semesters')
@@ -224,13 +345,6 @@ def get_enrolled_students():
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return jsonify({"error": str(e)}), 500
-    
-@app.route('/location')
-def location_page():
-    if "logged_in" in session:
-        return render_template('location.html')
-    else:
-        return render_template('Login.html')
 
 @app.route('/get_buildings/<campus>', methods=['GET'])
 def get_buildings(campus):
@@ -331,10 +445,6 @@ def delete_all_classrooms_in_building(campus, building):
         return jsonify({'success': False, 'message': 'No classrooms found to delete'}), 404
 
 
-@app.route('/editsubject', methods=['GET'])
-def editsubject_page():
-    return render_template('EditSubjects.html')
-
 @app.route('/get_subject_data', methods=['GET'])
 def get_subject_data():
     client = mongoDB.login()
@@ -405,41 +515,6 @@ def get_campus_locations(campus):
     campus_collection = db[f'{campus}_Locations']
     locations = list(campus_collection.find({}, {'_id': 0}))
     return jsonify(locations)
-
-@app.route('/createsubject', methods=['GET', 'POST'])
-def createsubject_page():
-    if request.method == 'GET':
-        return render_template('create_subject.html')
-
-    data = request.json
-    print(f"Received data: {data}")  # Log received data
-
-    year = data.get('year')
-    semester = data.get('semester')
-    campus = data.get('campus')
-    coordinator = data.get('coordinator')
-    subject_name = data.get('subjectName')
-    subject_code = data.get('subjectCode')
-    sections = data.get('sections')
-    
-    subject_data = {
-        'year': year,
-        'semester': semester,
-        'campus': campus,
-        'coordinator': coordinator,
-        'subjectName': subject_name,
-        'subjectCode': subject_code,
-        'sections': sections
-    }
-
-    try:
-        inserted_id = mongoDB.insert_subject(subject_data,year, semester)
-        print(f"Inserted document ID: {inserted_id}")  # Log inserted document ID
-        return jsonify({'status': 'success'}), 200
-    except Exception as e:
-        print(f"Error inserting subject: {e}")  # Log error message
-        return jsonify({'status': 'error', 'message': 'Failed to create subject'}), 500
-
 
 
 # 08/10 7:30 last modify
@@ -540,45 +615,6 @@ def inherit_subjects():
         return jsonify({'status': 'success', 'message': f'Inherited {len(subjects)} subjects'}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
-
-# 14/09 10:06 last modify
-# Route to handle file upload
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'GET':
-        return render_template('upload.html')
-    
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-
-    file = request.files['file']
-    year = request.form.get('year')  # Get the year from the form data
-    semester = request.form.get('semester')  # Get the semester from the form data
-
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-
-    if file:
-        # Create a directory with year and semester if it doesn't exist
-        folder_name = f"{year}_{semester}"
-        folder_path = os.path.join(app.config['UPLOAD_FOLDER'], folder_name)
-        os.makedirs(folder_path, exist_ok=True)
-        
-        # Save the file to the server inside the year_semester folder
-        filepath = os.path.join(folder_path, file.filename)
-        file.save(filepath)
-
-        # Process the file as needed (e.g., store data in database)
-        if file.filename.endswith('.csv'):
-            # Call the function to insert data into MongoDB
-            insert_student_data(filepath, year, semester)
-        elif file.filename.endswith('.xlsx'):
-            df = pd.read_excel(filepath)
-            # Optionally handle Excel files here
-        else:
-            return jsonify({'error': 'Invalid file format'}), 400
-
-        return jsonify({'message': 'File uploaded and data stored successfully'})
 
 #route to handle sending verification email
 @app.route('/send_vericode', methods=['POST'])
