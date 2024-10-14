@@ -94,13 +94,6 @@ def lab_section(lab):
             lab_time[title].append(section)
     return lab_time
 
-
-
-
-
-
-
-
 def parse_time(time_str):
     #transfer from string to time
     return datetime.strptime(time_str, "%H:%M").time()

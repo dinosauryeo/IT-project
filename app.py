@@ -655,59 +655,6 @@ def send_timetable():
     else:
         print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
-    
-"""
-#to send email out to a list of email, using a dictionary structure where the key would be receiver email and the value would be a list where the first element
-#would be the email subject, second element would be the email body and possibiliy a third element which would be a excel file to send
-def send_email(email_list):
-    #setup information required to send the email
-    server = 'smtp.gmail.com'
-    port = 587
-    username = "dinosauryeo@gmail.com"
-    password = "jucvnvbkwtgcehjo"
-    
-    for key in email_list.keys():
-        print(key)
-        #construct the email body
-        msg = MIMEMultipart()
-        msg['From'] = username
-        msg['To'] = key
-        msg['Subject'] = email_list[key][0]
-        body = email_list[key][1]
-        msg.attach(MIMEText(body, 'plain'))
-        
-        #attch the excel file if it exists
-        if(len(email_list[key]) == 3):
-            file_path = email_list[key][2] 
-            with open(file_path, "rb") as attachment:
-                # Create a MIMEBase object and set its payload to the file content
-                mime_base = MIMEBase('application', 'octet-stream')
-                mime_base.set_payload(attachment.read())
-            
-                # Encode the payload in base64
-                encoders.encode_base64(mime_base)
-                
-                # Add a header to the attachment
-                mime_base.add_header('Content-Disposition', f'attachment; filename="{file_path.split("/")[-1]}"')
-                
-                # Attach the Excel file to the message
-                msg.attach(mime_base)
-            
-        try:
-            with smtplib.SMTP(server, port) as server:
-                #create connection
-                server = smtplib.SMTP('smtp.gmail.com', 587)
-                server.starttls() 
-                
-                #login and send the mail
-                server.login(username, password)
-                server.sendmail(username, key, msg.as_string())
-        
-        except Exception as e:
-            return e
-            
-    return 1
-"""
 
 def send_email(email_list):
     #setup information required to send the email
@@ -794,77 +741,6 @@ def relogin():
         return jsonify({"status": "fail","message": "password doesn't match"})
     
 
-
-# @app.route('/generate_timetable', methods=['POST'])
-# def generate_timetable():
-#     try:
-#         client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
-#         timetable_db = client['Students-Timetable']
-#         timetable_collection = timetable_db['Timetables']
-#         # Call the function that generates the timetable
-#         timetables, error_messages = generate_timetable_for_students()
-
-#         if not timetables:
-#             return jsonify({'status': 'error', 'message': 'Failed to generate timetable'})
-        
-#         if error_messages:
-#             return jsonify({'status': 'error', 'message': error_messages})
-
-#         # Stored in MongoDB's Timetables collection
-#         for timetable in timetables:
-#             timetable_collection.insert_one(timetable)
-
-#         return jsonify({'status': 'success', 'message': 'Timetable generated and saved successfully!'})
-
-#     except Exception as e:
-#         print(f"Error: {str(e)}")
-#         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
-
-# @app.route('/generate_timetable', methods=['POST'])
-# def generate_timetable():
-#     try:
-#         # Get year and semester from the request body
-#         data = request.get_json()
-#         year = data.get('year')
-#         semester = data.get('semester')
-        
-#         if not year or not semester:
-#             return jsonify({'status': 'error', 'message': 'Year and semester are required'})
-
-#         # Dynamically select the database based on year and semester
-#         database_name = f"{year}_{semester}"
-        
-#         client = MongoClient("mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", server_api=ServerApi('1'))
-#         timetable_db = client[database_name]
-#         timetable_collection = timetable_db['Timetables']
-
-#         # Call the function that generates the timetable
-#         timetables, error_messages = generate_timetable_for_students(database_name)
-
-#         if not timetables:
-#             return jsonify({'status': 'error', 'message': 'Failed to generate timetable'})
-        
-#         if error_messages:
-#             return jsonify({'status': 'error', 'message': error_messages})
-
-#         # Store the generated timetables in the dynamically selected database
-#         for timetable in timetables:
-#             course_name = timetable.get('CourseName', 'UnknownCourse')
-#             campus_name = timetable.get('Campus', 'UnknownCampus')
-#             file_name = f"Timetable-{course_name}-{campus_name}.json"
-            
-#             # Log the file name or save it as part of the database entry if needed
-#             print(f"Generated file name: {file_name}")
-            
-#             # Insert the timetable into the MongoDB collection
-#             timetable_collection.insert_one(timetable)
-
-#         return jsonify({'status': 'success', 'message': 'Timetable generated and saved successfully!'})
-
-#     except Exception as e:
-#         print(f"Error: {str(e)}")
-#         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
-
 @app.route('/generate_timetable', methods=['POST'])
 def generate_timetable():
     try:
@@ -894,9 +770,6 @@ def generate_timetable():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'An error occurred while generating the timetable'})
-
-
-
 
 @app.route('/api/get-degrees', methods=['GET'])
 def get_degrees():
@@ -1014,31 +887,6 @@ def get_enrolled_students_timetable():
         print(f"An error occurred: {str(e)}")
         return jsonify({"error": str(e)}), 500
     
-'''
-return student id and student name and send it to front end
-'''
-# @app.route('/students_timetable', methods=['GET'])
-# def get_students():
-#     client = mongoDB.login()
-#     db = client['2019_Semester1']  # 选择数据库
-#     collection = db['Students-Enrollment-Details-20240915_190953']  # 选择集合
-#     try:
-#         # 查询MongoDB中的所有学生数据
-#         students = collection.find()
-#         # 将查询结果转换为JSON格式
-#         student_list = []
-#         for student in students:
-#             print(student['Student Name'])
-#             student_list.append({
-#                 'name': student.get('Student Name', 'No Name'),
-#                 'id': student.get('StudentID', 'No ID'),
-#                 'course': student.get('Course Name', 'No Course Name'),
-#                 'campus': student.get('Campus', 'No Campus')
-#             })
-        
-#         return jsonify(student_list), 200  # 返回JSON响应，状态码200
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500  # 返回错误信息，状态码500'''
     
 @app.route('/get-student-timetable')
 def get_student_timetable():
