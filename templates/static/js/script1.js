@@ -31,6 +31,17 @@ function relogin() {
     var resetpassword = document.getElementById("resetpassword").value;
     var confirmpassword = document.getElementById("comfpassword").value;
 
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W])[A-Za-z\d\W]{8,}$/;
+
+    if (resetpassword !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+    }
+    if (!regex.test(resetpassword)){
+        alert("This password doesn't meet the required requirement");
+        return;
+    }
+
     fetch('/reset_password', {
         method: 'POST',
         headers: {
