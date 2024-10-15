@@ -35,19 +35,33 @@
     <div class="registration-container">
         <div>
             <div>
-                <img src="static/images/logo.jpg"
-                alt="Sign"
-                width="300px"s
-                >
-            <h2 align="center">Register as a Member</h2>
-            <form id="registrationForm" onsubmit="registerUser(); return false;">
-                <input type="text" id="username" name="username" placeholder="Username" required>
-                <input type="email" id="email" name="email" placeholder="Email Address" required>
-                <input type="password" id="password" name="password" placeholder="Password" required>
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
-                <button type="submit">Register</button>
-            </form>
+                <img src="static/images/logo.jpg" alt="Sign" width="300px">
+                <h2 align="center">Register as a Member</h2>
+                <form id="registrationForm" onsubmit="registerUser(); return false;">
+                    <input type="text" id="username" name="username" placeholder="Username" required>
+                    <input type="email" id="email" name="email" placeholder="Email Address" required>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" placeholder="Password" required>
+                        <i class="fas fa-info-circle info-icon" onclick="showPasswordRules()"></i>
+                    </div>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+                    <button type="submit">Register</button>
+                </form>
+            </div>
         </div>
+    </div>
+
+    <div id="passwordRules" class="floating-window">
+        <span class="close-btn" onclick="closePasswordRules()">&times;</span>
+        <h3>Password Rules</h3>
+        <p>Your password must meet the following criteria:</p>
+        <ul>
+            <li>At least 8 characters long</li>
+            <li>Contains at least one uppercase letter</li>
+            <li>Contains at least one lowercase letter</li>
+            <li>Contains at least one number</li>
+            <li>Contains at least one special character</li>
+        </ul>
     </div>
 
     <script src="static/js/script.js"></script>

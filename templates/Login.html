@@ -9,32 +9,32 @@
 <body>
     <div class="login-container">
         <div>
-            <img src="static/images/logo.jpg"
-            alt="Sign"
-            width="300px"s
-            >
-                <h2 align="center">Sign in as a Member</h2>
-                <form id="loginForm" onsubmit="func(); return false;">
-                    <label for="Username / Email Address"></label>
-                    <div style="text-align: center;">
-                        <input type="text" id="username" name="username" placeholder="Username / Email Address">
-                    </div>
-                    <label for="password"></label>
-                    <div style="text-align: center;">
-                        <input type="password" id="password" name="password" placeholder="Password">
-                    </div>
-                    <div style="text-align: center;">
-                        <button type="submit">Login</button>
-                    </div>
-                </form>
+            <img src="static/images/logo.jpg" alt="Sign" width="300px">
+            <h2 align="center">Sign in as a Member</h2>
+            <form id="loginForm" onsubmit="return false;">
+                <label for="Username / Email Address"></label>
+                <div style="text-align: center;">
+                    <input type="text" id="username" name="username" placeholder="Username / Email Address">
+                </div>
+                <label for="password"></label>
+                <div style="text-align: center;">
+                    <input type="password" id="password" name="password" placeholder="Password">
+                </div>
+                <div style="text-align: center;">
+                    <button type="submit" onclick="func()">Login</button>
+                </div>
+            </form>
         </div>
         <div style="text-align: center;">
             <a href="/reset_page">Forget password >></a>
         </div>        
     </div>
 
-    <!-- Link to the external JavaScript file -->
-    <!-- <script src= "static/js/script.js" ></script> -->
+    <div id="floatingWindow" class="floating-window">
+        <p>Your password must be 8 or more characters long and include numbers, uppercase letters, lowercase letters, and special characters.</p>
+        <button onclick="closeFloatingWindow()">Close</button>
+    </div>
+
     <script>
         function func() {
             var username = document.getElementById("username").value;
@@ -54,13 +54,21 @@
                     window.location.href = '/home'; 
                 } 
                 else {
-                    alert(data.message);
+                    showFloatingWindow();
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred');
             });
+        }
+
+        function showFloatingWindow() {
+            document.getElementById("floatingWindow").style.display = "block";
+        }
+
+        function closeFloatingWindow() {
+            document.getElementById("floatingWindow").style.display = "none";
         }
     </script>
 </body>

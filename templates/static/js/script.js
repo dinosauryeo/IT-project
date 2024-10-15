@@ -53,6 +53,14 @@ document.getElementById('sideMenu').addEventListener('click', function(event) {
     event.stopPropagation();
 });
 
+function showPasswordRules() {
+    document.getElementById('passwordRules').style.display = 'block';
+}
+
+function closePasswordRules() {
+    document.getElementById('passwordRules').style.display = 'none';
+}
+
 function showPage(pageId) {
     // Hide all pages
     document.querySelectorAll('.page').forEach(page => {

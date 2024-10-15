@@ -95,11 +95,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Dynamic Year dropdown population
     const yearSelect = document.getElementById('yearSelect');
     const currentYear = new Date().getFullYear();
+    const startYear = 2019;
 
-    for (let i = 0; i < 5; i++) {  // Example: add 5 years ahead
+    for (let year = startYear; year <= currentYear + 1; year++) {
         let option = document.createElement('option');
-        option.value = currentYear + i;
-        option.text = currentYear + i;
+        option.value = year;
+        option.text = year;
         yearSelect.appendChild(option);
     }
 });

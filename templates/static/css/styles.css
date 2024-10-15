@@ -147,3 +147,34 @@ button:hover {
         width: 90%;
     }
 }
+
+.floating-window {
+    display: none;
+    position: fixed;
+    width: 30%;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    border-radius: 5px;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.password-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+.info-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.close-btn {
+    float: right;
+    cursor: pointer;
+}
