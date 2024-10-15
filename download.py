@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 
+
 TIME = 60
 COLUMN_C = 87.67
 COLUMN_B = 29.67
@@ -62,14 +63,17 @@ def calculate_duration(start_time, end_time):
 '''translate csv timetable into excel
 with well structured format and meet target output design '''
 def csv_to_excel(csv_file, excel_file):
+    print("strating conversion")
     # create border feature
     thin_border = Border(left=Side(style='thin'),
                      right=Side(style='thin'),
                      top=Side(style='thin'),
                      bottom=Side(style='thin'))
     tahoma_font = Font(name = TAHOMA, size = SIZE)
+    print("format setted")
     # create a Excelwritter 
     with pd.ExcelWriter(excel_file, engine = 'openpyxl') as writer:
+        print("create excelwritter")
         workbook = writer.book
         #create new work sheet
         worksheet = workbook.create_sheet(title = 'Timetable') 
@@ -79,11 +83,30 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.column_dimensions['D'].width = COLUMN_D
         worksheet.column_dimensions['E'].width = COLUMN_E
         worksheet.column_dimensions['F'].width = COLUMN_E
-        worksheet.column_dimensions['G'].width = COLUMN_G
-        # image add
-        img = Image('templates/static/images/uniphoto.png')  
-        worksheet.add_image(img, 'A1')
-        
+        print("column finish")
+        #image path find
+        image_directory = os.path.join(os.getcwd(), "templates")
+        image_dir = os.path.join(image_directory, "static")
+        image_d = os.path.join(image_dir, "images")
+        image_path = os.path.join(image_d, 'uniphoto.png')
+        print("image path created")
+        result=os.path.exists(image_path);
+        print(result);
+        # create image
+        if os.path.exists(image_path):
+            try:
+                print("0")  # 检查是否进入此逻辑
+                img = Image(image_path)  # 尝试加载图片
+                print("1")  # 图片加载成功
+            except Exception as e:  # 捕获所有异常
+                print(f"An error occurred while loading the image: {e}")  # 输出错误信息
+            #move image into EXCEL
+            worksheet.add_image(img, 'A1') 
+            print(f"Image found: {image_path}")
+        else:
+            print(f"Image not found at path: {image_path}")
+            return False
+        print("image path found")
         # import title
         worksheet.append(['']*1 + ["Victorian Institute of Technology Pty Ltd"])
         worksheet.append(['']*1 + ["ABN: 41 085 128 525 RTO No: 20829 TEQSA ID: PRV14007 CRICOS Provider Code: 02044E"])
@@ -99,13 +122,13 @@ def csv_to_excel(csv_file, excel_file):
         for row in data.itertuples(index=False):
             # append each line into excel
             worksheet.append(row) 
-        worksheet.merge_cells('B1:G1') 
-        worksheet.merge_cells('B2:G2') 
-        worksheet.merge_cells('B3:G3') 
-        worksheet.merge_cells('B4:G4')
-        worksheet.merge_cells('A5:G5')
-        worksheet.merge_cells('A6:G6')
-        worksheet.merge_cells('A7:G7')
+        worksheet.merge_cells('B1:F1') 
+        worksheet.merge_cells('B2:F2') 
+        worksheet.merge_cells('B3:F3') 
+        worksheet.merge_cells('B4:F4')
+        worksheet.merge_cells('A5:F5')
+        worksheet.merge_cells('A6:F6')
+        worksheet.merge_cells('A7:F7')
         for row in range(1, ROW - 1):
             if row < TITLE:
                 merged_cell = worksheet[f'B{row}']
@@ -122,11 +145,11 @@ def csv_to_excel(csv_file, excel_file):
                 merged_cell.alignment = Alignment(horizontal = LEFT, vertical = HORIZONTAL)
                 merged_cell.font = Font(color = RED, bold = True, name=TAHOMA, size = SIZE)    
 
-            
+        print("putting background and font")
         # grey back ground and font
         header_fill = PatternFill(start_color= GREY , end_color = GREY, fill_type="solid")  
         header_font = Font(bold=True, color = BLACK, name = TAHOMA)
-        columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        columns = ['A', 'B', 'C', 'D', 'E', 'F']
         for column in columns:
             cell = worksheet[f'{column}9']
             cell.font = header_font
@@ -142,6 +165,7 @@ def csv_to_excel(csv_file, excel_file):
                 cell.border = thin_border
         worksheet.row_dimensions[ROW].height = ROW_HEIGHT
         worksheet['D9'].alignment = Alignment(horizontal = HORIZONTAL, vertical = HORIZONTAL, wrap_text = True)
+        print("complte workflow")
 
 
 
@@ -191,7 +215,7 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
             collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
             
             if collection_name is None:
-                return false;
+                return False;
             
             student_collection = db[collection_name]
             
@@ -210,7 +234,7 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                 filename = f'{student_id}_timetable.csv'
                 file_path = os.path.join(download_dir, filename) 
                 with open(file_path, 'w', newline = '', encoding = 'utf-8') as file:
-                    fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
+                    fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Delivery Mode']
                     writer = csv.DictWriter(file, fieldnames = fieldnames)
                     writer.writeheader()
                     if sorted_timetables:
@@ -220,15 +244,17 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                                 'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + "(L + T)",
                                 'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + '(' + calculate_duration(format_time(timetable.get('From', '')) , format_time(timetable.get('To', ''))) +' ' +timetable.get('Title', '') + ')',
                                 'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
-                                'Lecturer': timetable.get('Lecturer', ''),
-                                'Tutor': timetable.get('Tutor', ''),
+                                'Lecturer': timetable.get('Name', ''),
                                 'Delivery Mode': timetable.get('Mode', '')
                             }
                             writer.writerow(row)
                             print(f"writing into csv\n")
                     else:
                         print(f"No timetable found for StudentID: {student_id}")
-                excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')         
+                        
+                print("preparing excel path")
+                excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')        
+                print("converting csv to excel file") 
                 csv_to_excel(file_path, excel_path)
                 print("excel verstion timetable ready\n")
             
@@ -269,6 +295,7 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
                 print(f"sent to {student_id}")
                 
                 #delete the file after it had been sent
+                
                 os.remove(excel_path)
                 os.remove(file_path)
         
@@ -282,8 +309,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     client = MongoClient('mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/')
     db_name = f'{year}_{semester}'
     db = client[db_name]
-    
-    # 使用正则表达式寻找符合的集合
+
     folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(degree_name)}.*{re.escape(campus)}.*")
     collections = db.list_collection_names()
     collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
@@ -295,7 +321,7 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     collection = db[collection_name]
     days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
-    # 查找指定 student_id 的时间表
+    # find exactly student timetable
     student_data = collection.find_one({"StudentID": int(student_id)})
 
     if student_data is None:
@@ -308,19 +334,19 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
         print(f"No timetable data available for StudentID: {student_id}")
         return False
 
-    # 排序时间表
+    # sort timetable
     sorted_timetables = sorted(timetables, key=lambda x: (days_order.index(x['Day'].lower()), datetime.strptime(x['From'], '%H:%M')))
 
-    # 创建目录
+    # create student timetable file
     download_dir = 'student_timetable'
     os.makedirs(download_dir, exist_ok=True)
 
-    # 创建每个学生的csv文件
+    # create student csv file
     filename = f'{student_id}_timetable.csv'
     file_path = os.path.join(download_dir, filename)
 
     with open(file_path, 'w', newline='', encoding='utf-8') as file:
-        fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Tutor', 'Delivery Mode']
+        fieldnames = ['Day', 'Time', 'Unit', 'Classroom\nLevel/ Room/ Venue', 'Lecturer', 'Delivery Mode']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -330,13 +356,12 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
                 'Time': format_time(timetable.get('From', '')) + ' to ' + format_time(timetable.get('To', '')) + " (L + T)",
                 'Unit': timetable.get('SubjectCode', '') + '-' + timetable.get('SubjectName', '') + ' (' + calculate_duration(format_time(timetable.get('From', '')), format_time(timetable.get('To', ''))) + ' ' + timetable.get('Title', '') + ')',
                 'Classroom\nLevel/ Room/ Venue': timetable.get('Location', ''),
-                'Lecturer': timetable.get('Lecturer', ''),
-                'Tutor': timetable.get('Tutor', ''),
+                'Lecturer': timetable.get('Name', ''),
                 'Delivery Mode': timetable.get('Mode', '')
             }
             writer.writerow(row)
 
-    # 将CSV转换为Excel
+    # change csv into excel
     excel_path = os.path.join(download_dir, f'{student_id}_timetable.xlsx')
     csv_to_excel(file_path, excel_path)
     
@@ -346,14 +371,14 @@ def download_one(year, semester, campus, folder_prefix, degree_name, student_id)
     collection_name = next((coll for coll in collections if folder_pattern.match(coll)), None)
     
     if collection_name is None:
-        return false;
+        return False;
     
     collection = db[collection_name]
 
-    # 查找指定 student_id 的时间表
+    # find exact student timetable
     student_data = collection.find_one({"StudentID": int(student_id)})
     
     if student_data is None:
-        return false
+        return False
     
     return student_data.get("University Email")
