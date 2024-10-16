@@ -514,16 +514,24 @@ document.addEventListener('DOMContentLoaded', function () {
     
     populateYearSemesterDropdowns();
 
-    // Show inherit dialog
+    // Show inherit dialog and clear subject selections
     inheritBtn.addEventListener('click', function() {
-        inheritDialog.style.display = 'block';
-        addYearSemesterContainer.style.display = 'none';
-    });
+    // Show the inherit dialog
+    inheritDialog.style.display = 'block';  
+    
+    // Hide the add-year-semester container if it's visible
+    addYearSemesterContainer.style.display = 'none';
+    
+    // Clear the selected year-semester and campus
+    yearSemesterSelect.value = ''; // Clear year-semester selection
+    campusSelect.value = ''; // Clear campus selection
+    campusSelect.disabled = true; // Disable campus select again
+    
+    // Clear the subject list and hide the subject info container
+    subjectContainer.innerHTML = ''; // Clear the subjects
+    subjectInfoContainer.style.display = 'none'; // Hide subject info container
+});
 
-    // Hide inherit dialog
-    cancelInheritBtn.addEventListener('click', function() {
-        inheritDialog.style.display = 'none';
-    });
 
     // Handle inherit confirmation
     confirmInheritBtn.addEventListener('click', function() {

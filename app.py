@@ -176,7 +176,6 @@ def upload_file():
 def reset_page():
     return render_template('fgtpswd.html')
 
-
 @app.route('/logout')
 def logout_page():
     session.pop('logged_in', None)
@@ -616,6 +615,7 @@ def inherit_subjects():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
 #route to handle sending verification email
 @app.route('/send_vericode', methods=['POST'])
 def send_vericode():
@@ -643,6 +643,7 @@ def send_vericode():
         print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
     
+"""
 #route to handle sending verification email
 @app.route('/send_timetable', methods=['POST'])    
 def send_timetable():
@@ -655,6 +656,7 @@ def send_timetable():
     else:
         print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
+"""
 
 def send_email(email_list):
     #setup information required to send the email
@@ -926,8 +928,6 @@ def get_student_timetable():
 
     print("Returning 404 error")
     return jsonify({"error": "Timetable not found"}), 404
-
-
 
 '''
 export all student timetables when the export-all button clicked

@@ -2,7 +2,6 @@ function loadHomePage(){
     window.location.href = '/home';
 }
 function loadStudentPage(){
-    alert("load student page");
     window.location.href = '/student';
 }
 function loadUploadPage(){

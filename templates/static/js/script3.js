@@ -232,6 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.status === 'success') {
                     alert('Subject created successfully!');
                     // Optionally redirect or clear form
+                    window.location.href = '/home';
                 } else {
                     alert('Error creating subject: ' + data.message);
                 }
