@@ -126,7 +126,7 @@ def createsubject_page():
     else:
         return render_template("Login.html")
     
-# 14/09 10:06 last modify
+
 # Route to handle file upload
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
@@ -139,8 +139,10 @@ def upload_file():
             return jsonify({'error': 'No file part'}), 400
 
         file = request.files['file']
-        year = request.form.get('year')  # Get the year from the form data
-        semester = request.form.get('semester')  # Get the semester from the form data
+        # Get the year from the form data
+        year = request.form.get('year') 
+        # Get the semester from the form data
+        semester = request.form.get('semester') 
 
         if file.filename == '':
             return jsonify({'error': 'No selected file'}), 400
@@ -155,7 +157,6 @@ def upload_file():
             filepath = os.path.join(folder_path, file.filename)
             file.save(filepath)
 
-            # Process the file as needed (e.g., store data in database)
             if file.filename.endswith('.csv'):
                 # Call the function to insert data into MongoDB
                 insert_student_data(filepath, year, semester)
@@ -199,7 +200,6 @@ def register():
             if existing_user:
                 return jsonify({'status': 'error', 'message': 'Username or email already exists'})
             
-            #hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
             new_user = {
                 'username': data['username'],
                 'email': data['email'],
@@ -265,7 +265,7 @@ def check_time():
         return True
     
     
-# 09/10 12:53 last modify
+
 @app.route('/api/get-year-semesters')
 def get_year_semesters():
     client = mongoDB.login()
@@ -285,7 +285,7 @@ def get_year_semesters():
     client.close()
     return jsonify(filtered_dbs)
 
-#09/10 1:40 last modify
+
 @app.route('/get-enrolled-students', methods=['GET'])
 def get_enrolled_students():
     try:
@@ -305,7 +305,7 @@ def get_enrolled_students():
         db = client[db_name]
         print(f"Accessing database: {db_name}")
 
-        # Find the correct collection (folder)
+        # Find the correct collection
         folder_pattern = re.compile(f"^{re.escape(folder_prefix)}.*{re.escape(campus)}.*")
         collections = db.list_collection_names()
         matching_collections = [coll for coll in collections if folder_pattern.match(coll)]
@@ -401,7 +401,8 @@ def get_locations():
         campus_collection = db[f'{campus}_Locations']
         campus_locations = list(campus_collection.find({'classroom': {'$exists': True}}))
         for loc in campus_locations:
-            loc['_id'] = str(loc['_id'])  # Convert ObjectId to string
+            # Convert ObjectId to string
+            loc['_id'] = str(loc['_id'])
         locations.extend(campus_locations)
     return jsonify(locations)
 
@@ -527,8 +528,10 @@ def get_subjects():
 
     try:
         client = mongoDB.login()
-        db = client[year_semester]  # Connect to the specific year and semester database
-        collection = db['Subjects-Details']  # Collection where your subjects are stored
+        # Connect to the specific year and semester database
+        db = client[year_semester]
+        # Collection where your subjects are stored
+        collection = db['Subjects-Details']
         
         # Fetch subjects for the specified campus
         subjects = list(collection.find({'campus': campus}, {'_id': 0, 'subjectName': 1, 'subjectCode': 1, 'coordinator': 1, 'campus': 1}))
@@ -549,7 +552,7 @@ def get_subjects():
         return jsonify({'status': 'error', 'message': 'Failed to fetch subjects'}), 500
     
 
-# 08/10 6:59 last modify
+
 @app.route('/getsubjectdetails', methods=['GET'])
 def get_subject_details():
     subject_code = request.args.get('subject_code')
@@ -567,12 +570,13 @@ def get_subject_details():
 
     try:
         client = mongoDB.login()
-        db = client[f"{year}_{semester}"]  # Connect to the specific year and semester database
-        collection = db['Subjects-Details']  # Collection where your subjects are stored
-        
+        # Connect to the specific year and semester database
+        db = client[f"{year}_{semester}"]
+        collection = db['Subjects-Details']
+
         subject = collection.find_one({'subjectCode': subject_code, 'campus': campus}, {'_id': 0})
-        
-        print(f"Found subject: {subject}")  # Check if the subject is found
+         # Check if the subject is found
+        print(f"Found subject: {subject}") 
         
         if subject:
             return jsonify(subject), 200
@@ -582,7 +586,7 @@ def get_subject_details():
         print(f"An error occurred: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to fetch subject details'}), 500
 
-# 08/10 4:10 last modify
+
 @app.route('/inherit_subjects', methods=['POST'])
 def inherit_subjects():
     data = request.json
@@ -645,17 +649,6 @@ def send_vericode():
     
 """
 #route to handle sending verification email
-@app.route('/send_timetable', methods=['POST'])    
-def send_timetable():
-    #have to add logic to combine the timetable with student's email(work to be done)
-    respons = send_email({"jetng111@gmail.com":["student timetable", "this would be the student timetable", "excel_sample.xlsx"]})
-    
-    if respons == 1:
-        return jsonify({"status": "success","message": "timetable sent to student!"})
-    
-    else:
-        print(f"Failed to send email: {respons}")
-        return jsonify({"status": "fail","message": "Failed to send email"})
 """
 
 def send_email(email_list):
@@ -746,19 +739,19 @@ def relogin():
 @app.route('/generate_timetable', methods=['POST'])
 def generate_timetable():
     try:
-        # 从请求体中获取年份和学期
+
         data = request.get_json()
         year = data.get('year')
         semester = data.get('semester')
 
-        # 验证年份和学期是否提供
+
         if not year or not semester:
             return jsonify({'status': 'error', 'message': 'Year and semester are required'})
 
-        # 动态选择基于年份和学期的数据库
+        
         database_name = f"{year}_{semester}"
 
-        # 调用生成时间表的函数
+     
         timetables, error_messages = generate_timetable_for_students(database_name)
 
         if not timetables:
@@ -817,7 +810,7 @@ def remove_degree():
         print(traceback.format_exc())
         return jsonify({"success": False, "message": "Server error occurred"}), 500
 
-#09/10 4.47 last modify
+
 @app.route('/get-enrolled-students-timetable', methods=['GET'])
 def get_enrolled_students_timetable():
     try:

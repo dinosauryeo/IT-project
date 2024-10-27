@@ -83,30 +83,24 @@ def csv_to_excel(csv_file, excel_file):
         worksheet.column_dimensions['D'].width = COLUMN_D
         worksheet.column_dimensions['E'].width = COLUMN_E
         worksheet.column_dimensions['F'].width = COLUMN_E
-        print("column finish")
         #image path find
         image_directory = os.path.join(os.getcwd(), "templates")
         image_dir = os.path.join(image_directory, "static")
         image_d = os.path.join(image_dir, "images")
         image_path = os.path.join(image_d, 'uniphoto.png')
-        print("image path created")
-        result=os.path.exists(image_path);
-        print(result);
         # create image
         if os.path.exists(image_path):
             try:
-                print("0")  # 检查是否进入此逻辑
-                img = Image(image_path)  # 尝试加载图片
-                print("1")  # 图片加载成功
-            except Exception as e:  # 捕获所有异常
-                print(f"An error occurred while loading the image: {e}")  # 输出错误信息
+                img = Image(image_path) 
+            except Exception as e: 
+                print(f"An error occurred while loading the image: {e}") 
             #move image into EXCEL
             worksheet.add_image(img, 'A1') 
             print(f"Image found: {image_path}")
         else:
             print(f"Image not found at path: {image_path}")
             return False
-        print("image path found")
+
         # import title
         worksheet.append(['']*1 + ["Victorian Institute of Technology Pty Ltd"])
         worksheet.append(['']*1 + ["ABN: 41 085 128 525 RTO No: 20829 TEQSA ID: PRV14007 CRICOS Provider Code: 02044E"])
