@@ -8,7 +8,7 @@ Yueyue Ma, Roujia Feng, Deyulin Chen, Ren Jie Yeo, Jieyang Zhu
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
-2. [Deployment Link](#deployment-link)
+2. [Demo](#demo)
 3. [Documents](#documents)
 4. [Test Cases](#test-cases)
 5. [Changelog (or Release History)](#changelog-or-release-history)
@@ -41,7 +41,7 @@ This project is designed to streamline timetable management across campuses at t
 
 ---
 
-##
+## Demo
 This is our deployment link: [VIT Timetable System](https://it-project-timetable.onrender.com/)
 
 This is our user manual: [VIT Timetable System User manual](docs/VIT_User_manual.pdf)
