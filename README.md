@@ -98,11 +98,16 @@ This is our user manual: [VIT Timetable System User manual](docs/VIT_User_manual
 ---
 
 ## Key Algorithms
-### Service Price Calculation
-Detail the algorithm used to calculate service prices or any significant operations.
 
-### 3rd Party Data Import
-Explain how the system handles data import from external systems.
+The code first connects to the MongoDB database and specifies the desired database using the passed database_name parameter like Year_SemesterX. In the database, it looks for all collections prefixed with Students-Enrollment-Details-, which store information about students for a particular course and campus. The code also gets the Subjects-Details collection, which stores detailed information about the course, including the course code, different sections (lecture, workshop, lab), and different optional times for each section.
+
+The code then processes each student collection one by one. First, it extracts the course name and campus name from the collection name to create a corresponding timetable collection (e.g. Timetable-CourseName-CampusName), and checks if a timetable collection for the same course and campus already exists. If an old timetable collection is found, it is deleted first to ensure that the newly generated timetable does not conflict with the old data.
+
+The code then starts generating timetables for each student. To avoid time conflicts, the code tries multiple times to schedule each student. For each student, the code iterates through all of their selected courses, ensuring that schedules are only generated for courses with a status of "Enrolled" (ENRL). After finding a course, the code gets the available modules and schedules for the course in the course details, selects the module and checks whether its time conflicts with the allocated time. By calling the check_time_conflict function, the code ensures that the newly scheduled module does not overlap with the allocated time. If the module has a conflict-free time, it is assigned to the student and the time is recorded in the list of allocated times; if no conflict-free course is found after trying all times for the course, the order of the available times for the student's selected courses is shuffled and the schedule is tried again for this student.
+
+If a conflict-free schedule is still not generated for the student after multiple attempts, the code logs an error message indicating the student ID for which generation failed for further review.
+
+After generating the schedule for each student, the code saves all generated schedules to a new collection in the database. This ensures that the student schedules for each course and campus are saved in separate collections.
 
 ---
 ## System Requirements
