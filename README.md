@@ -13,8 +13,6 @@ Yueyue Ma, Roujia Feng, Deyulin Chen, Ren Jie Yeo, Jieyang Zhu
 4. [Test Cases](#test-cases)
 5. [Changelog (or Release History)](#changelog-or-release-history)
 6. [Key Algorithms](#key-algorithms)
-   - [Service Price Calculation](#service-price-calculation)
-   - [3rd Party Data Import](#3rd-party-data-import)
 7. [System Requirements](#system-requirements)
 8. [Application Architecture](#application-architecture)
    - [Key Classes & Layers of the Application](#key-classes--layers-of-the-application)
