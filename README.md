@@ -91,7 +91,10 @@ This is our user manual: [VIT Timetable System User manual](docs/VIT_User_manual
 
 ## Changelog (or Release History)
 
-
+- [Version 4.0.0](https://github.com/dinosauryeo/IT-project/releases/tag/Version4.0.0)
+- [Version 3.0.0](https://github.com/dinosauryeo/IT-project/releases/tag/Version3.0.0)
+- [Version 2.0.0](https://github.com/dinosauryeo/IT-project/releases/tag/Version2.0.0)
+- [Version 1.0.0](https://github.com/dinosauryeo/IT-project/releases/tag/Version1.0.0)
 
 ---
 
