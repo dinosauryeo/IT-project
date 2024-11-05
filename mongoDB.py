@@ -10,6 +10,7 @@ from datetime import datetime
 import random
 
 def login():
+    #replace all occurance of this link in this file with your mongoDB link
     uri = "mongodb+srv://dinosauryeo:6OHYa6vF6YUCk48K@cluster0.dajn796.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
     # Create a new client and connect to the server

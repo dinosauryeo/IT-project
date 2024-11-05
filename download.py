@@ -180,8 +180,8 @@ def download_all(year,semester,campus,folder_prefix,degree_name):
     #setup information required to send the email
     server = 'smtp.gmail.com'
     port = 587
-    username = "dinosauryeo@gmail.com"
-    password = "jucvnvbkwtgcehjo"
+    username = #enter email here
+    password = #enter the app password here(read handover documentation for instruction)
     
     try:
         with smtplib.SMTP(server, port) as server:

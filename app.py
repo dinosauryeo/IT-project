@@ -643,27 +643,12 @@ def send_vericode():
         print(f"Failed to send email: {respons}")
         return jsonify({"status": "fail","message": "Failed to send email"})
     
-"""
-#route to handle sending verification email
-@app.route('/send_timetable', methods=['POST'])    
-def send_timetable():
-    #have to add logic to combine the timetable with student's email(work to be done)
-    respons = send_email({"jetng111@gmail.com":["student timetable", "this would be the student timetable", "excel_sample.xlsx"]})
-    
-    if respons == 1:
-        return jsonify({"status": "success","message": "timetable sent to student!"})
-    
-    else:
-        print(f"Failed to send email: {respons}")
-        return jsonify({"status": "fail","message": "Failed to send email"})
-"""
-
 def send_email(email_list):
     #setup information required to send the email
     server = 'smtp.gmail.com'
     port = 587
-    username = "dinosauryeo@gmail.com"
-    password = "jucvnvbkwtgcehjo"
+    username = #enter email here
+    password = #enter the app password here(read handover documentation for instruction)
     
     try:
         with smtplib.SMTP(server, port) as server:
