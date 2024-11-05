@@ -162,12 +162,12 @@ First, open Google Chrome and log in with the email account you want to use for 
 In your Google Account, go to the **"Security"** section on the left sidebar. Find **2-Step Verification**, click it, and complete the setup. Once it's set up successfully, you will see a green tick, as shown below.
 
 ![2-Step Verify](docs/guide_images/2_2-step-verify.png)
-![2-Step Verify Success](docs/guide_images/3_2-step-verify-sucess.png)
+![2-Step Verify Success](docs/guide_images/3_2-step-verify-sucess.jpg)
 
 #### Step 3: Set Up App Password and Web Activity
 In the same **"Security"** page, use the search bar at the top and search for **"App"**. Follow the instructions to set up an App Password and enable Web and APP Activity, as shown below.
 
-![Set App Password and Web Activity](docs/guide_images/4_set-app-password-and-web-activity.png)
+![Set App Password and Web Activity](docs/guide_images/4_set-app-password-and-web-activity.jpg)
 
 #### Step 4: Send Email and Download All Function Setup
 Once you've completed the steps above, you are almost ready. Now, open the following Python files and update the email settings to use your own email credentials:
@@ -175,8 +175,8 @@ Once you've completed the steps above, you are almost ready. Now, open the follo
 - **[app.py](app.py)**: The send email function is located from line 646 to 651.
 - **[download.py](download.py)**: The download all function is located from line 179 to 184.
 
-![Send Email](docs/guide_images/5_send-email.png)
-![Download All](docs/guide_images/6_downloadall.png)
+![Send Email](docs/guide_images/5_send-email.jpg)
+![Download All](docs/guide_images/6_downloadall.jpg)
 
 Following these steps will configure the email verification and timetable sending functionality using your email account.
 
