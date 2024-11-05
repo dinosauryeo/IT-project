@@ -165,7 +165,7 @@ In your Google Account, go to the **"Security"** section on the left sidebar. Fi
 ![2-Step Verify Success](docs/guide_images/3_2-step-verify-sucess.jpg)
 
 #### Step 3: Set Up App Password and Web Activity
-In the same **"Security"** page, use the search bar at the top and search for **"App"**. Follow the instructions to set up an App Password and enable Web and APP Activity, as shown below.
+In the same **"Security"** page, use the search bar at the top and search for **"App"**. Follow the instructions to use **App Password** to generate a app password, as shown below.
 
 ![Set App Password and Web Activity](docs/guide_images/4_set-app-password-and-web-activity.jpg)
 
