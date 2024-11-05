@@ -16,21 +16,23 @@ Yueyue Ma, Roujia Feng, Deyulin Chen, Ren Jie Yeo, Jieyang Zhu
 7. [System Requirements](#system-requirements)
 8. [Application Architecture](#application-architecture)
    - [Key Classes & Layers of the Application](#key-classes--layers-of-the-application)
-9. [Database Structure](#database-structure)
-   - [Time-Sensitive Data](#time-sensitive-data)
-   - [Non-Time-Sensitive Data](#non-time-sensitive-data)
-10. [Deployment Guidelines](#deployment-guidelines)
+9. [Email Setup Guide **(IMPORTANT!!)**](#email-setup-guide-important)
+10. [Database Structure](#database-structure)
+    - [Time-Sensitive Data](#time-sensitive-data)
+    - [Non-Time-Sensitive Data](#non-time-sensitive-data)
+11. [Deployment Guidelines](#deployment-guidelines)
     - [Current Deployment](#current-deployment)
     - [Modifying Packages](#modifying-packages)
     - [Deploying on a New Server](#deploying-on-a-new-server)
     - [Database Access and Root Permissions](#database-access-and-root-permissions)
     - [Email Configuration](#email-configuration)
-11. [Licensing](#licensing)
+12. [Licensing](#licensing)
     - [MongoDB](#mongodb)
     - [Email](#email)
     - [Render](#render)
-12. [Access and Permissions](#access-and-permissions)
+13. [Access and Permissions](#access-and-permissions)
     - [Repositories](#repositories)
+
 
 ---
 
@@ -41,6 +43,8 @@ This project is designed to streamline timetable management across campuses at t
 
 ## Demo
 This is our deployment link: [VIT Timetable System](https://it-project-timetable.onrender.com/)
+
+(*our delpoyment is currently on this [branch](https://github.com/dinosauryeo/IT-project/tree/feature/StudentTimetableAndHomeListInfo) )
 
 This is our user manual: [VIT Timetable System User manual](docs/VIT_User_manual.pdf)
 
@@ -143,6 +147,42 @@ After generating the schedule for each student, the code saves all generated sch
 
 ---
 
+## Email Setup Guide **(IMPORTANT!!)**
+
+Since the original code for email verification and timetable sending uses our developer's personal email, please follow the steps below to set up your own email for these functionalities.
+
+### Steps to Set Up Email
+
+#### Step 1: Manage Google Account
+First, open Google Chrome and log in with the email account you want to use for sending emails. Click on your profile photo, then click the **"Manage your Google Account"** button.
+
+![Click Profile Photo](docs/guide_images/1_clickprofilephoto.png)
+
+#### Step 2: Set Up 2-Step Verification
+In your Google Account, go to the **"Security"** section on the left sidebar. Find **2-Step Verification**, click it, and complete the setup. Once it's set up successfully, you will see a green tick, as shown below.
+
+![2-Step Verify](docs/guide_images/2_2-step-verify.png)
+![2-Step Verify Success](docs/guide_images/3_2-step-verify-sucess.png)
+
+#### Step 3: Set Up App Password and Web Activity
+In the same **"Security"** page, use the search bar at the top and search for **"App"**. Follow the instructions to set up an App Password and enable Web and APP Activity, as shown below.
+
+![Set App Password and Web Activity](docs/guide_images/4_set-app-password-and-web-activity.png)
+
+#### Step 4: Send Email and Download All Function Setup
+Once you've completed the steps above, you are almost ready. Now, open the following Python files and update the email settings to use your own email credentials:
+
+- **[app.py](app.py)**: The send email function is located from line 646 to 651.
+- **[download.py](download.py)**: The download all function is located from line 179 to 184.
+
+![Send Email](docs/guide_images/5_send-email.png)
+![Download All](docs/guide_images/6_downloadall.png)
+
+Following these steps will configure the email verification and timetable sending functionality using your email account.
+
+
+---
+
 ## Database Structure
 
 The database used in this project is **MongoDB**, a non-relational database.
@@ -211,7 +251,7 @@ The database used in this project is **MongoDB**, a non-relational database.
 
 ## Access and Permissions
 ### Repositories
-If need github repository ownership transfer, please contact us via email: rebecca.r.feng.0.0@gmail.com or dinosauryeo@gmail.com
+If need github repository ownership transfer or have any questions, please contact us via email: rebecca.r.feng.0.0@gmail.com or dinosauryeo@gmail.com
 
 ---
 
